@@ -1,0 +1,27 @@
+const { BN } = require('@openzeppelin/test-helpers');
+
+const SEAT_COUNT = new BN('20');
+const CITIZEN_COUNT_QUORUM = new BN('100');
+const TALLY_DURATION = new BN('300'); // 5 min
+const TOKEN_NAME = 'Test Token';
+const TOKEN_SYMBOL = 'TOK';
+const TOKEN_MANTISSA = new BN('1000000000000000000');
+const TOKEN_SUPPLY = new BN('100000000').mul(TOKEN_MANTISSA);
+const DELEGATION_REWARD_RATE = TOKEN_MANTISSA.div(new BN('20')); // 0.05 HUD/sec
+const REFERRAL_REWARD = new BN('50').mul(TOKEN_MANTISSA);
+const FAUCET_INITIAL_BALANCE = new BN('100000').mul(TOKEN_MANTISSA);
+const EXEC_REWARD_EXPONENT_MAX = new BN('73');  // 2 ** 73 sec ~= 9445 HUD
+
+module.exports = {
+    SEAT_COUNT,
+    CITIZEN_COUNT_QUORUM,
+    TALLY_DURATION,
+    DELEGATION_REWARD_RATE,
+    REFERRAL_REWARD,
+    TOKEN_NAME,
+    TOKEN_SYMBOL,
+    TOKEN_MANTISSA,
+    TOKEN_SUPPLY,
+    FAUCET_INITIAL_BALANCE,
+    EXEC_REWARD_EXPONENT_MAX,
+}

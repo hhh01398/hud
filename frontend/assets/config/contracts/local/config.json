@@ -1,0 +1,9 @@
+{
+    "contractAddresses": {
+        "poh": "0x7a42B18516e2B6D83a6962bE1a7899F606Be664c",
+        "assembly": "0x60aBe6fb983c89Bae74FF905Cf5119FbA071bD0a",
+        "wallet": "0x1A7ff1517c43E9B4d0A40BcBd5f7522a20d45022",
+        "token": "0xd0D60539200Fc0d6db20fA7D31c0cC067b46bd11",
+        "faucet": "0xE5F586559B34a04e463529E0e7C689C25d70dB2a"
+    }
+}

@@ -1,0 +1,12 @@
+{
+  "overrides": [
+    {
+      "files": "*.sol",
+      "options": {
+        "printWidth": 800,
+        "tabWidth": 4,
+        "useTabs": false
+      }
+    }
+  ]
+}
