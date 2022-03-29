@@ -195,3 +195,19 @@ $ yarn task _humanity-set --address ADDRESS
 ## Next steps
 
 You can now run different tasks to create delegates, transactions, tallies, etc.
+
+# Smart contract verification
+
+You may verify that the smart contract's deployed bytecode corresponds to its source code or, alternatively, trust [Polygonscan](https://polygonscan.com).
+
+Keep in mind that, because the contracts follow the [EIP1967 standard](https://eips.ethereum.org/EIPS/eip-1967), the smart contract addresses the user interacts with are those of the proxy contracts, not the contract containing the actual logic.
+
+For example, to verify the [proxy contract](https://polygonscan.com/address/0x5E73040E4eac787c0b749048Ba104660315C04e3) of the [Assembly contract](https://polygonscan.com/address/0x95c02c0fe6c5becf2d7834928ff0f59e3dce6bab) can be done checking:
+
+1. The [code verification of the Asssembly contract](https://polygonscan.com/address/0x95c02c0fe6c5becf2d7834928ff0f59e3dce6bab#code)
+2. The [code verification of the proxy contract](https://polygonscan.com/address/0x5E73040E4eac787c0b749048Ba104660315C04e3#code)
+3. The [proxy contract was initialized with the address of the Assembly contract](https://polygonscan.com/address/0x5E73040E4eac787c0b749048Ba104660315C04e3#events):
+
+![Constructor Arguments](./assets/constructor_arguments.png)
+
+Also note that, at the time of writting, [Polygonscan](https://polygonscan.com) does not support reading and writing to a contract from its ERC1967Proxy contract.
