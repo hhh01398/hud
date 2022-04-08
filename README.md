@@ -19,7 +19,9 @@ It is also possible to interact with the DAO by [running the frontend on your ma
 
 Humanity Unchained DAO's smart contracts currently run on the Polygon blockchain, mainnet for production, testnet Mumbai for test. **For a technical description, please check the [smart contract documentation](smart_contracts/README.md).**
 
-We now describe Humanity Unchained DAO workflow from a user perspective.
+### Voting
+
+We now describe Humanity Unchained DAO voting workflow from a user perspective.
 
 **Step 1: A transaction proposal is submitted for review**
 
@@ -65,7 +67,31 @@ Example:
 |Number of seconds passed since approval|30*2 = 60 sec
 |Reward|1.15292150460685E+018 ~= 1.15 HUD
 
-### Token
+### Banning members
+
+The DAO can, partially o completely, remove a member (commonly known as <i>banning</i>). This is done through the following 2 methods:
+
+**Distrust**
+
+Distrusted members can no longer apply for citizenship or delegation. Once an address is distrusted, it cannot be trusted back again.
+
+**Expel**
+
+The member is completely removed from the DAO, meaning he/she will be removed the status of citizenship and delegation, if applicable. Requirements to be expelled are either no longer having valid humanity proof or becoming distrusted first.
+
+### Creator role
+
+By default, the address from which the Assembly contract is deployed is called the `creator` address. This `creator` role has the following two differences from the rest of members:
+
+1. *Registration in the PoH oracle is not mandatory*. This allows the DAO creator to optionally be anonymous.
+
+2. *It is the only address allowed to execute transactions until a quorum of citizens is reached.*
+This is intended to avoid the risk of centralization during the initial stages of the DAO, when the number of members is still small and there is a larger probability of critical votings being controled by a small minority with a common goal against the general purpose of the DAO. This limitation is no longer active once the quorum is reached (by default, 100 citizens).
+
+The `creator` address can be changed by the creator itself. This can be used to, for example, disclose the real identity of the creator address owner or to effectively abandon the DAO.
+
+
+## Token
 
 The total supply of HUD is fixed. The DAO owns a reserve of HUD tokens which are initially not in circulation. As time passes, the DAO will be spending the tokens from the reserve to pay for delegation, execution and referral rewards, or for any other purposes the DAO decides so.
 
@@ -78,7 +104,6 @@ Discourse: https://forum.humanityunchained.org
 Telegram: https://t.me/humanityunchaineddao
 
 Twitter: https://twitter.com/UnchainedDAO
-
 
 ## License
 
