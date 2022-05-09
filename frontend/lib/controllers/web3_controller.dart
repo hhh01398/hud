@@ -266,11 +266,8 @@ class Web3Controller extends GetxController {
         daoData.value.appointmentCounts[ret[0][i].toString().trim()] = int.parse(ret[1][i].toString());
       }
 
-      ret = await dao.call('getDelegateSeats', []);
-      List<PohProfile> _delegateSeats = [];
-      for (final address in ret) {
-        _delegateSeats.add(await pohService.getProfileData(address));
-      }
+      final addresses = await dao.call('getDelegateSeats', []);
+      List<PohProfile> _delegateSeats = await Future.wait(addresses.map((address) => pohService.getProfileData(address)).toList());
 
       daoData.value.delegateSeats.clear();
       daoData.value.delegateSeats.addAll(_delegateSeats);

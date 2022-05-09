@@ -20,8 +20,13 @@ class SocialMediaUrl {
 
 final ethPrecisionFactor = Decimal.parse('1e18');
 const tokenSymbol = 'HUD';
+const ipfsUrl = 'https://ipfs.kleros.io';
+const pohApiUrl = 'https://api.thegraph.com/subgraphs/name/kleros/proof-of-humanity-mainnet';
 
-const ipfsServerAddress = 'https://cloudflare-ipfs.com';
+const creatorEthAddress = '0xD219F00ae0E217552C931f2084CfFd8914d32B48';
+const creatorAvatarAsset = 'assets/images/logo_ext_large_whitebg.jpg';
+const creatorTag = '<DAO creator>';
+const enableAvatars = true;
 
 class Palette {
   static const int reserve = 0xFF26E5FF;
@@ -31,7 +36,7 @@ class Palette {
 }
 
 const selfAvatarSize = 30.0;
-const avatarSize = 25.0;
+const avatarSize = 15.0;
 
 const Map<int, String> supportedChains = {
   137: 'mainnet',
@@ -63,5 +68,6 @@ const Map<int, String> citizenVoteMapping = {
 };
 
 final urlInstructionsMetamask = 'https://docs.polygon.technology/docs/develop/metamask/config-polygon-on-metamask/';
+const urlPohProfile = 'https://app.proofofhumanity.id/profile/';
 
-final urlPohProfile = 'https://app.proofofhumanity.id/profile/';
+const urlForum = 'https://forum.humanityunchained.org/';

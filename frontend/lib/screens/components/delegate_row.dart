@@ -15,10 +15,20 @@ DataRow delegateDataRow(BuildContext context, int? seatNum, PohProfile? delegate
       DataCell(
         Row(
           children: [
-            delegate == null ? Container() : Avatar(delegate, avatarSize),
+            delegate == null
+                ? Container()
+                : Avatar(
+                    delegate,
+                    avatarSize,
+                    url: urlPohProfile + delegate.ethAddress.toLowerCase(),
+                  ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
-              child: delegate == null ? Container() : Text(delegate.name),
+              child: delegate == null
+                  ? Container()
+                  : delegate.ethAddress.toLowerCase() == creatorEthAddress.toLowerCase()
+                      ? const Text(creatorTag)
+                      : Text(delegate.name),
             ),
           ],
         ),
