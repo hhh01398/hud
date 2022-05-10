@@ -7,8 +7,8 @@ require("./scripts/hardhat-tasks");
 
 const ACCOUNTS_COUNT = 30;
 const {
-  MNEMONIC_HARDHAT, MNEMONIC_TESTNET, MNEMONIC_MAINNET,
-  PASSPHRASE_HARDHAT, PASSPHRASE_TESTNET, PASSPHRASE_MAINNET
+  MNEMONIC_HARDHAT, MNEMONIC_LOCAL, MNEMONIC_TESTNET, MNEMONIC_MAINNET,
+  PASSPHRASE_HARDHAT, PASSPHRASE_LOCAL, PASSPHRASE_TESTNET, PASSPHRASE_MAINNET
 } = process.env;
 
 module.exports = {
@@ -32,6 +32,17 @@ module.exports = {
       accounts: {
         mnemonic: `${MNEMONIC_HARDHAT}`,
         passphrase: `${PASSPHRASE_HARDHAT}`,
+        count: ACCOUNTS_COUNT,
+      }
+    },
+    local: {
+      url: "http://localhost:8545",
+      blockGasLimit: 10000000,
+      timeout: 600000,
+      allowUnlimitedContractSize: false,
+      accounts: {
+        mnemonic: `${MNEMONIC_LOCAL}`,
+        passphrase: `${PASSPHRASE_LOCAL}`,
         count: ACCOUNTS_COUNT,
       }
     },
