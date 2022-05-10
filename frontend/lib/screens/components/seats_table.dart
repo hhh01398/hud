@@ -43,6 +43,21 @@ class _SeatsTableState extends State<SeatsTable> {
         (index) => delegateDataRow(context, d.delegateSeats.indexOf(delegateSeats[index]), delegateSeats[index], appointmentCounts, controller),
       );
 
+      List<Widget> bottom = [const SizedBox(width: defaultPadding * 1.5)];
+
+      if (d.seatCount > d.delegateSeats.length) {
+        bottom.addAll([
+          claimSeatButton(context, controller, d.delegateSeats.length),
+          const SizedBox(width: defaultPadding * 2),
+        ]);
+      }
+
+      bottom.addAll([
+        distributeDelegationRewardButton(context, controller),
+        const SizedBox(width: 5),
+        const TooltipInfo("For a correct delegate reward calculation, click this button to apply any changes in the citizen appointment count or seat distribution"),
+      ]);
+
       return Container(
           padding: const EdgeInsets.all(defaultPadding),
           decoration: const BoxDecoration(
@@ -82,10 +97,7 @@ class _SeatsTableState extends State<SeatsTable> {
                     ],
                     rows: rowList),
               ),
-              if (d.seatCount > d.delegateSeats.length)
-                Row(
-                  children: [const SizedBox(height: defaultPadding * 4), claimSeatButton(context, controller, d.delegateSeats.length)],
-                ),
+              Row(children: bottom),
             ],
           ));
     });

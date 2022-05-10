@@ -77,3 +77,15 @@ Button claimSeatButton(
     size: const Size(110.0, 36.0),
   );
 }
+
+Button distributeDelegationRewardButton(BuildContext context, Web3Controller controller) {
+  return Button(
+    'Update',
+    controller.daoProfile.value.isDelegate == false
+        ? null
+        : () async {
+            await controller.distributeDelegationReward();
+          },
+    iconData: Icons.autorenew,
+  );
+}

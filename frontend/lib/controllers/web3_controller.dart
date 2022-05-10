@@ -402,6 +402,16 @@ class Web3Controller extends GetxController {
       errorDialog(e);
     }
   }
+
+  Future distributeDelegationReward() async {
+    try {
+      logging('Distributing delegation reward..');
+      final tx = await dao.call('distributeDelegationReward', []);
+      update();
+    } on EthereumException catch (e) {
+      errorDialog(e);
+    }
+  }
 }
 
 void errorDialog(e) {
