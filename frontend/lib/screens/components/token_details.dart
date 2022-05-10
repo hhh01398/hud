@@ -1,13 +1,15 @@
-import 'package:humanity_unchained_dao/constants.dart';
-import 'package:humanity_unchained_dao/controllers/web3_controller.dart';
-import 'package:humanity_unchained_dao/screens/components/chart.dart';
-import 'package:humanity_unchained_dao/screens/components/rounded_container.dart';
-import 'package:humanity_unchained_dao/screens/components/storage_info_card.dart';
-import 'package:humanity_unchained_dao/screens/components/tooltip.dart';
-import 'package:humanity_unchained_dao/utils/utils.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:humanity_unchained_dao/constants.dart';
+import 'package:humanity_unchained_dao/controllers/web3_controller.dart';
+import 'package:humanity_unchained_dao/screens/components/chart.dart';
+import 'package:humanity_unchained_dao/screens/components/open_browser.dart';
+import 'package:humanity_unchained_dao/screens/components/rounded_container.dart';
+import 'package:humanity_unchained_dao/screens/components/token_info_card.dart';
+import 'package:humanity_unchained_dao/screens/components/tooltip.dart';
+import 'package:humanity_unchained_dao/services/market_service.dart';
+import 'package:humanity_unchained_dao/utils/utils.dart';
 
 class TokenDetails extends StatelessWidget {
   const TokenDetails({
@@ -41,8 +43,7 @@ class TokenDetails extends StatelessWidget {
                       ),
                     ),
                     SizedBox(width: 5),
-                    TooltipInfo(
-                        "Figures showing the current economics of the token.\nNote: n/a means the token price is not available at the moment."),
+                    TooltipInfo("Figures showing the current economics of the token.\nNote: n/a means a token price is not available at the moment."),
                   ],
                 ),
                 const SizedBox(height: defaultPadding / 2),
@@ -54,13 +55,16 @@ class TokenDetails extends StatelessWidget {
                         Text(formatCcy(balanceToUnits(t.totalSupply).toDouble()) + ' ' + tokenSymbol),
                       ]),
                       Row(children: [
-                        const Expanded(child: Text('Price')),
-                        Text((t.priceUsd == Decimal.zero ? 'n/a' : t.priceUsd.toStringAsPrecision(4)) + ' USD'),
+                        const Text('Price'),
+                        const TooltipInfo('Latest exchange rate available on decentralized exchanges'),
+                        const Spacer(),
+                        Text((t.priceUsd == Decimal.zero ? 'n/a' : t.priceUsd.toStringAsPrecision(4)) + ' ' + ccySymbol),
+                        OpenBrowser(MarketService.getAppUrl(controller.currentChain, tokenSymbol, ccySymbol)),
                       ]),
                       Row(
                         children: [
                           const Expanded(child: Text('Market cap')),
-                          Text((t.marketCap() == Decimal.zero ? 'n/a' : formatCcy(t.marketCap()!.toDouble())) + ' USD'),
+                          Text((t.marketCap() == Decimal.zero ? 'n/a' : formatCcy(t.marketCap()!.toDouble())) + ' ' + ccySymbol),
                         ],
                       ),
                       Row(
@@ -73,11 +77,7 @@ class TokenDetails extends StatelessWidget {
                         children: [
                           const Expanded(child: Text('Reserve per capita')),
                           Text(
-                            t.marketCap() == null || d.citizenCount.toInt() == 0
-                                ? '-'
-                                : formatCcy(balanceToUnits(BigInt.from(t.reserveBalance / BigInt.from(d.citizenCount))).toDouble()) +
-                                    ' ' +
-                                    tokenSymbol,
+                            t.marketCap() == null || d.citizenCount.toInt() == 0 ? '-' : formatCcy(balanceToUnits(BigInt.from(t.reserveBalance / BigInt.from(d.citizenCount))).toDouble()) + ' ' + tokenSymbol,
                           ),
                         ],
                       ),
@@ -86,21 +86,21 @@ class TokenDetails extends StatelessWidget {
                 ),
                 const SizedBox(height: defaultPadding),
                 const Chart(),
-                StorageInfoCard(
+                TokenInfoCard(
                   svgSrc: const Color(Palette.reserve),
                   title: "Reserve vault",
                   numTokens: t.reserveBalance,
                   totalTokenSupply: t.totalSupply,
                   tokenPrice: t.priceUsd,
-                  priceCcy: 'USD',
+                  priceCcy: ccySymbol,
                 ),
-                StorageInfoCard(
+                TokenInfoCard(
                   svgSrc: const Color(Palette.circulating),
                   title: "In circulation",
                   numTokens: (t.totalSupply) - (t.reserveBalance),
                   totalTokenSupply: t.totalSupply,
                   tokenPrice: t.priceUsd,
-                  priceCcy: 'USD',
+                  priceCcy: ccySymbol,
                 ),
               ],
             ),

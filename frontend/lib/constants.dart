@@ -21,6 +21,13 @@ class SocialMediaUrl {
 
 final ethPrecisionFactor = Decimal.parse('1e18');
 const tokenSymbol = 'HUD';
+const ccySymbol = 'DAI';
+const tokenContractAddresses = {
+  137: {
+    'DAI': '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063',
+  }
+};
+
 const ipfsUrl = 'https://ipfs.kleros.io';
 const pohApiUrl = 'https://api.thegraph.com/subgraphs/name/kleros/proof-of-humanity-mainnet';
 
@@ -28,6 +35,7 @@ const creatorEthAddress = '0xD219F00ae0E217552C931f2084CfFd8914d32B48';
 const creatorAvatarAsset = 'assets/images/logo_ext_large_whitebg.jpg';
 const creatorTag = '<DAO creator>';
 const enableAvatars = true;
+const enablePrice = true;
 
 class Palette {
   static const int reserve = 0xFF26E5FF;

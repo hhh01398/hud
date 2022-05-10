@@ -1,3 +1,9 @@
+import 'dart:convert';
+
+import 'package:decimal/decimal.dart';
+import 'package:flutter_web3/flutter_web3.dart';
+import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 import 'package:humanity_unchained_dao/config.dart';
 import 'package:humanity_unchained_dao/constants.dart';
 import 'package:humanity_unchained_dao/models/dao_data.dart';
@@ -5,10 +11,9 @@ import 'package:humanity_unchained_dao/models/dao_profile.dart';
 import 'package:humanity_unchained_dao/models/poh_profile.dart';
 import 'package:humanity_unchained_dao/models/token_data.dart';
 import 'package:humanity_unchained_dao/models/wallet_transaction.dart';
+import 'package:humanity_unchained_dao/services/market_service.dart';
 import 'package:humanity_unchained_dao/services/poh_service.dart';
 import 'package:humanity_unchained_dao/utils/utils.dart';
-import 'package:flutter_web3/flutter_web3.dart';
-import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Web3Controller extends GetxController {
@@ -219,6 +224,20 @@ class Web3Controller extends GetxController {
     }
   }
 
+  Future<Decimal> fetchPrice() async {
+    final queryParameters = {
+      'fromTokenAddress': token.address,
+      'toTokenAddress': tokenContractAddresses[currentChain]![ccySymbol],
+      'amount': ethPrecisionFactor.toBigInt().toString(),
+    };
+    logging('Fetching price for $tokenSymbol/$ccySymbol on chain $currentChain pair...');
+    final response = await http.get(MarketService.getApiUri(queryParameters));
+    final body = jsonDecode(response.body);
+    final price = Decimal.parse((Decimal.parse(body['toTokenAmount']).toDouble() / Decimal.parse(body['fromTokenAmount']).toDouble()).toString());
+    logging('Got price $tokenSymbol/$ccySymbol = $price');
+    return price;
+  }
+
   Future updateToken() async {
     try {
       logging('Loading Token data...');
@@ -227,7 +246,8 @@ class Web3Controller extends GetxController {
       tokenData.value.totalSupply = BigInt.parse((await token.call('totalSupply', [])).toString());
       tokenData.value.reserveAddress = (await token.call('getReserve', [])).toString();
       tokenData.value.reserveBalance = BigInt.parse((await token.call('balanceOf', [tokenData.value.reserveAddress])).toString());
-      //tokenData.value.priceUsd = // TODO
+      tokenData.value.priceUsd = enablePrice ? await fetchPrice() : Decimal.zero;
+
       logging('Token data loaded');
 
       tokenData.refresh();
