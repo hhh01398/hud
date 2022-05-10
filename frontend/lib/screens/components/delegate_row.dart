@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:humanity_unchained_dao/constants.dart';
 import 'package:humanity_unchained_dao/controllers/web3_controller.dart';
 import 'package:humanity_unchained_dao/models/poh_profile.dart';
@@ -7,12 +8,11 @@ import 'package:humanity_unchained_dao/screens/components/button.dart';
 import 'package:humanity_unchained_dao/screens/components/clipboard_button.dart';
 import 'package:humanity_unchained_dao/screens/components/open_browser.dart';
 import 'package:humanity_unchained_dao/utils/utils.dart';
-import 'package:flutter/material.dart';
 
 DataRow delegateDataRow(BuildContext context, int? seatNum, PohProfile? delegate, Map<String, int> appointmentCounts, Web3Controller controller) {
   return DataRow(
     cells: [
-      if (seatNum != null) DataCell(claimSeatButton(context, controller, seatNum, shrink: true)),
+      if (seatNum != null) DataCell(claimSeatButton(context, controller, seatNum)),
       DataCell(
         Row(
           children: [
@@ -64,12 +64,7 @@ DataRow delegateDataRow(BuildContext context, int? seatNum, PohProfile? delegate
   );
 }
 
-Button claimSeatButton(
-  BuildContext context,
-  Web3Controller controller,
-  int seatNum, {
-  bool shrink = false,
-}) {
+Button claimSeatButton(BuildContext context, Web3Controller controller, int seatNum) {
   return Button(
     '#$seatNum',
     controller.daoProfile.value.isDelegate == false

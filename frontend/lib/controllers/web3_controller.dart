@@ -48,6 +48,7 @@ class Web3Controller extends GetxController {
     logging('Checking for Ethereum support...');
 
     if (Ethereum.isSupported) {
+      logging('Your browser supports Ethereum');
       final accs = await ethereum!.requestAccount();
       currentChain = await ethereum!.getChainId();
 
@@ -70,6 +71,7 @@ class Web3Controller extends GetxController {
         update();
       });
     } else {
+      logging('Your browser does not support Ethereum');
       currentChain = defaultChainNoWeb3Wallet;
       jsonRpcProvider = JsonRpcProvider(defaultJsonRpcProviderUrl);
     }
@@ -77,7 +79,9 @@ class Web3Controller extends GetxController {
   }
 
   void checkChainSupport() {
+    logging('Checking chain support...');
     if (!supportedChains.keys.contains(currentChain)) {
+      logging('Your wallet is using an unsupported chain');
       Get.defaultDialog(
         title: 'Wrong chain',
         textConfirm: "Configure Metamask",
@@ -86,11 +90,17 @@ class Web3Controller extends GetxController {
         onConfirm: () => launch(urlInstructionsMetamask),
         middleText: '$appName is deployed on Polygon mainnet (chainID=137), but you are connected to chainID=$currentChain.',
       );
+    } else {
+      logging('Your wallet is using a supported chain');
     }
   }
 
   Future loadProfile() async {
+    logging('Loading profile...');
+
     final PohProfile _pohProfile = await pohService.getProfileData(currentAddress);
+
+    logging('Profile loaded');
 
     pohProfile.update((_) {
       _!.ethAddress = currentAddress;
@@ -263,11 +273,12 @@ class Web3Controller extends GetxController {
       for (var i = 0; i < int.parse(proposalCount.toString()); i++) {
         final tx = await wallet.call('getProposal', [i]);
         final t = WalletTransaction(
-            id: i,
-            destinationAddress: tx[0].toString(),
-            value: BigInt.parse(tx[1].toString()),
-            data: tx[2].toString(),
-            executed: tx[3].toString() == 'true');
+          id: i,
+          destinationAddress: tx[0].toString(),
+          value: BigInt.parse(tx[1].toString()),
+          data: tx[2].toString(),
+          executed: tx[3].toString() == 'true',
+        );
         _transactions.add(t);
       }
       daoData.value.transactions.clear();
@@ -279,6 +290,8 @@ class Web3Controller extends GetxController {
 
   Future updateDelegateSeats() async {
     try {
+      logging('Updating delegate seats...');
+
       var ret = await dao.call('getDelegateSeatAppointmentCounts', []);
 
       daoData.value.appointmentCounts.clear();
@@ -395,6 +408,7 @@ class Web3Controller extends GetxController {
 
   Future claimSeat(int seatNum) async {
     try {
+      logging('Claiming seat number $seatNum..');
       final tx = await dao.call('claimSeat', [seatNum]);
       await updateDelegateSeats();
       update();
@@ -416,8 +430,9 @@ class Web3Controller extends GetxController {
 
 void errorDialog(e) {
   Get.defaultDialog(
-      title: "Error",
-      textCancel: "Close",
-      onCancel: () {},
-      middleText: "An error ocurred, check your browser logs for more information\n\nError: ${e.code} ${e.message}");
+    title: "Error",
+    textCancel: "Close",
+    onCancel: () {},
+    middleText: "An error ocurred, check your browser logs for more information\n\nError: ${e.code} ${e.message}",
+  );
 }

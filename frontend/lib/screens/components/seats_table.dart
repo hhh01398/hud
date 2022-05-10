@@ -1,13 +1,12 @@
-// import 'package:data_table_2/data_table_2.dart';
 import 'dart:math';
 
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:humanity_unchained_dao/constants.dart';
 import 'package:humanity_unchained_dao/controllers/web3_controller.dart';
 import 'package:humanity_unchained_dao/responsive.dart';
 import 'package:humanity_unchained_dao/screens/components/delegate_row.dart';
 import 'package:humanity_unchained_dao/screens/components/tooltip.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class SeatsTable extends StatefulWidget {
   int? limitCount;

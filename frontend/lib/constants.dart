@@ -76,7 +76,8 @@ const Map<int, String> citizenVoteMapping = {
   2: 'Nay',
 };
 
-final urlInstructionsMetamask = 'https://docs.polygon.technology/docs/develop/metamask/config-polygon-on-metamask/';
+const urlInstructionsMetamask = 'https://docs.polygon.technology/docs/develop/metamask/config-polygon-on-metamask/';
+
 const urlPohProfile = 'https://app.proofofhumanity.id/profile/';
 
 const urlForum = 'https://forum.humanityunchained.org/';
