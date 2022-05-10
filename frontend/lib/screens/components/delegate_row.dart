@@ -5,6 +5,7 @@ import 'package:humanity_unchained_dao/responsive.dart';
 import 'package:humanity_unchained_dao/screens/components/avatar.dart';
 import 'package:humanity_unchained_dao/screens/components/button.dart';
 import 'package:humanity_unchained_dao/screens/components/clipboard_button.dart';
+import 'package:humanity_unchained_dao/screens/components/open_browser.dart';
 import 'package:humanity_unchained_dao/utils/utils.dart';
 import 'package:flutter/material.dart';
 
@@ -32,6 +33,9 @@ DataRow delegateDataRow(BuildContext context, int? seatNum, PohProfile? delegate
             ),
           ],
         ),
+      ),
+      DataCell(
+        delegate == null ? Container() : OpenBrowser(urlForum + 't/' + delegate.ethAddress.toLowerCase()),
       ),
       if (!Responsive.isMobile(context))
         DataCell(delegate == null

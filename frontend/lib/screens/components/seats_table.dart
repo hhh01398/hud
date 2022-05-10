@@ -80,6 +80,7 @@ class _SeatsTableState extends State<SeatsTable> {
                     columns: [
                       const DataColumn(label: Text("Claim Seat")),
                       const DataColumn(label: Text("Identity")),
+                      const DataColumn(label: Text("Website")),
                       if (!Responsive.isMobile(context)) const DataColumn(label: Text("Address")),
                       DataColumn(
                           label: Row(children: const [
