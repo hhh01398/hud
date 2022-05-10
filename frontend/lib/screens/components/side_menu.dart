@@ -11,6 +11,8 @@ class SideMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const spacingFactor = 0.2;
+
     return Drawer(
       child: ListView(
         children: [
@@ -83,17 +85,21 @@ class SideMenu extends StatelessWidget {
               onPressed: () => launch(SocialMediaUrl.telegram),
               icon: const Icon(FontAwesomeIcons.telegramPlane, color: tertiaryColor, size: socialMediaLogoSize),
             ),
-            const SizedBox(width: defaultPadding / 2),
+            const SizedBox(width: defaultPadding * spacingFactor),
             IconButton(
               onPressed: () => launch(SocialMediaUrl.github),
               icon: const Icon(FontAwesomeIcons.github, color: tertiaryColor, size: socialMediaLogoSize),
             ),
-            const SizedBox(width: defaultPadding / 2),
+            const SizedBox(width: defaultPadding * spacingFactor),
             IconButton(
               onPressed: () => launch(SocialMediaUrl.twitter),
               icon: const Icon(FontAwesomeIcons.twitter, color: tertiaryColor, size: socialMediaLogoSize),
             ),
-            const SizedBox(width: defaultPadding / 2),
+            const SizedBox(width: defaultPadding * spacingFactor),
+            IconButton(
+              onPressed: () => launch(SocialMediaUrl.odysee),
+              icon: const Icon(FontAwesomeIcons.youtube, color: tertiaryColor, size: socialMediaLogoSize),
+            ),
           ]),
         ],
       ),

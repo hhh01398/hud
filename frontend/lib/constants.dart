@@ -16,6 +16,7 @@ class SocialMediaUrl {
   static const String telegram = 'https://t.me/humanityunchaineddao';
   static const String github = 'https://github.com/hhh01398/hud';
   static const String twitter = 'https://twitter.com/UnchainedDAO';
+  static const String odysee = 'https://odysee.com/@HumanityUnchainedDAO';
 }
 
 final ethPrecisionFactor = Decimal.parse('1e18');
