@@ -1,15 +1,34 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 
+// Visuals
+
 const appName = 'Humanity Unchained DAO';
 const appNameLogo = 'Humanity\nUnchained\nDAO';
+
 const primaryColor = Color(0xFF2697FF);
 const secondaryColor = Color(0xFF2A2D3E);
 const tertiaryColor = Color(0xFFFFFFFF);
 const bgColor = Color(0xFF212332);
 
-const socialMediaLogoSize = 24.0;
+class Palette {
+  static const int reserve = 0xFF26E5FF;
+  static const int circulating = 0xFFEE2727;
+  static const int ok = 0xFF26E5FF;
+  static const int notOk = 0xFFEE2727;
+}
+
 const defaultPadding = 16.0;
+const socialMediaLogoSize = 24.0;
+const selfAvatarSize = 30.0;
+const avatarSize = 15.0;
+
+const creatorEthAddress = '0xD219F00ae0E217552C931f2084CfFd8914d32B48';
+const creatorAvatarAsset = 'assets/images/logo_ext_large_whitebg.jpg';
+const creatorTag = '<DAO creator>';
+
+
+// External links
 
 class SocialMediaUrl {
   static const String discourse = 'https://forum.humanityunchained.org';
@@ -18,6 +37,12 @@ class SocialMediaUrl {
   static const String twitter = 'https://twitter.com/UnchainedDAO';
   static const String odysee = 'https://odysee.com/@HumanityUnchainedDAO';
 }
+
+const urlInstructionsMetamask = 'https://docs.polygon.technology/docs/develop/metamask/config-polygon-on-metamask/';
+const urlForum = 'https://forum.humanityunchained.org/';
+
+
+// Token
 
 final ethPrecisionFactor = Decimal.parse('1e18');
 const tokenSymbol = 'HUD';
@@ -28,24 +53,15 @@ const tokenContractAddresses = {
   }
 };
 
+
+// External APIs
+
 const ipfsUrl = 'https://ipfs.kleros.io';
 const pohApiUrl = 'https://api.thegraph.com/subgraphs/name/kleros/proof-of-humanity-mainnet';
+const urlPohProfile = 'https://app.proofofhumanity.id/profile/';
 
-const creatorEthAddress = '0xD219F00ae0E217552C931f2084CfFd8914d32B48';
-const creatorAvatarAsset = 'assets/images/logo_ext_large_whitebg.jpg';
-const creatorTag = '<DAO creator>';
-const enableAvatars = true;
-const enablePrice = true;
 
-class Palette {
-  static const int reserve = 0xFF26E5FF;
-  static const int circulating = 0xFFEE2727;
-  static const int ok = 0xFF26E5FF;
-  static const int notOk = 0xFFEE2727;
-}
-
-const selfAvatarSize = 30.0;
-const avatarSize = 15.0;
+// Ethereum
 
 const Map<int, String> supportedChains = {
   137: 'mainnet',
@@ -62,6 +78,9 @@ const Map<int, String> chainLongName = {
 const defaultChainNoWeb3Wallet = 137;
 const defaultJsonRpcProviderUrl = 'https://polygon-rpc.com';
 
+
+// Smart contracts
+
 final contractNames = {
   'poh': 'ProofOfHumanityOracle',
   'assembly': 'Assembly',
@@ -76,8 +95,8 @@ const Map<int, String> citizenVoteMapping = {
   2: 'Nay',
 };
 
-const urlInstructionsMetamask = 'https://docs.polygon.technology/docs/develop/metamask/config-polygon-on-metamask/';
 
-const urlPohProfile = 'https://app.proofofhumanity.id/profile/';
+// Development flags
 
-const urlForum = 'https://forum.humanityunchained.org/';
+const enableAvatars = true;
+const enablePrice = true;
