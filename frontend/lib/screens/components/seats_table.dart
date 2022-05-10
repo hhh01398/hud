@@ -1,13 +1,12 @@
-// import 'package:data_table_2/data_table_2.dart';
 import 'dart:math';
 
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:humanity_unchained_dao/constants.dart';
 import 'package:humanity_unchained_dao/controllers/web3_controller.dart';
 import 'package:humanity_unchained_dao/responsive.dart';
 import 'package:humanity_unchained_dao/screens/components/delegate_row.dart';
 import 'package:humanity_unchained_dao/screens/components/tooltip.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class SeatsTable extends StatefulWidget {
   int? limitCount;
@@ -43,6 +42,21 @@ class _SeatsTableState extends State<SeatsTable> {
         (index) => delegateDataRow(context, d.delegateSeats.indexOf(delegateSeats[index]), delegateSeats[index], appointmentCounts, controller),
       );
 
+      List<Widget> bottom = [const SizedBox(width: defaultPadding * 1.5)];
+
+      if (d.seatCount > d.delegateSeats.length) {
+        bottom.addAll([
+          claimSeatButton(context, controller, d.delegateSeats.length),
+          const SizedBox(width: defaultPadding * 2),
+        ]);
+      }
+
+      bottom.addAll([
+        distributeDelegationRewardButton(context, controller),
+        const SizedBox(width: 5),
+        const TooltipInfo("For a correct delegate reward calculation, click this button to apply any changes in the citizen appointment count or seat distribution"),
+      ]);
+
       return Container(
           padding: const EdgeInsets.all(defaultPadding),
           decoration: const BoxDecoration(
@@ -65,6 +79,7 @@ class _SeatsTableState extends State<SeatsTable> {
                     columns: [
                       const DataColumn(label: Text("Claim Seat")),
                       const DataColumn(label: Text("Identity")),
+                      const DataColumn(label: Text("Website")),
                       if (!Responsive.isMobile(context)) const DataColumn(label: Text("Address")),
                       DataColumn(
                           label: Row(children: const [
@@ -82,10 +97,7 @@ class _SeatsTableState extends State<SeatsTable> {
                     ],
                     rows: rowList),
               ),
-              if (d.seatCount > d.delegateSeats.length)
-                Row(
-                  children: [const SizedBox(height: defaultPadding * 4), claimSeatButton(context, controller, d.delegateSeats.length)],
-                ),
+              Row(children: bottom),
             ],
           ));
     });

@@ -1,3 +1,9 @@
+import 'dart:convert';
+
+import 'package:decimal/decimal.dart';
+import 'package:flutter_web3/flutter_web3.dart';
+import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 import 'package:humanity_unchained_dao/config.dart';
 import 'package:humanity_unchained_dao/constants.dart';
 import 'package:humanity_unchained_dao/models/dao_data.dart';
@@ -5,10 +11,9 @@ import 'package:humanity_unchained_dao/models/dao_profile.dart';
 import 'package:humanity_unchained_dao/models/poh_profile.dart';
 import 'package:humanity_unchained_dao/models/token_data.dart';
 import 'package:humanity_unchained_dao/models/wallet_transaction.dart';
+import 'package:humanity_unchained_dao/services/market_service.dart';
 import 'package:humanity_unchained_dao/services/poh_service.dart';
 import 'package:humanity_unchained_dao/utils/utils.dart';
-import 'package:flutter_web3/flutter_web3.dart';
-import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Web3Controller extends GetxController {
@@ -43,6 +48,7 @@ class Web3Controller extends GetxController {
     logging('Checking for Ethereum support...');
 
     if (Ethereum.isSupported) {
+      logging('Your browser supports Ethereum');
       final accs = await ethereum!.requestAccount();
       currentChain = await ethereum!.getChainId();
 
@@ -65,6 +71,7 @@ class Web3Controller extends GetxController {
         update();
       });
     } else {
+      logging('Your browser does not support Ethereum');
       currentChain = defaultChainNoWeb3Wallet;
       jsonRpcProvider = JsonRpcProvider(defaultJsonRpcProviderUrl);
     }
@@ -72,7 +79,9 @@ class Web3Controller extends GetxController {
   }
 
   void checkChainSupport() {
+    logging('Checking chain support...');
     if (!supportedChains.keys.contains(currentChain)) {
+      logging('Your wallet is using an unsupported chain');
       Get.defaultDialog(
         title: 'Wrong chain',
         textConfirm: "Configure Metamask",
@@ -81,11 +90,17 @@ class Web3Controller extends GetxController {
         onConfirm: () => launch(urlInstructionsMetamask),
         middleText: '$appName is deployed on Polygon mainnet (chainID=137), but you are connected to chainID=$currentChain.',
       );
+    } else {
+      logging('Your wallet is using a supported chain');
     }
   }
 
   Future loadProfile() async {
+    logging('Loading profile...');
+
     final PohProfile _pohProfile = await pohService.getProfileData(currentAddress);
+
+    logging('Profile loaded');
 
     pohProfile.update((_) {
       _!.ethAddress = currentAddress;
@@ -219,6 +234,20 @@ class Web3Controller extends GetxController {
     }
   }
 
+  Future<Decimal> fetchPrice() async {
+    final queryParameters = {
+      'fromTokenAddress': token.address,
+      'toTokenAddress': tokenContractAddresses[currentChain]![ccySymbol],
+      'amount': ethPrecisionFactor.toBigInt().toString(),
+    };
+    logging('Fetching price for $tokenSymbol/$ccySymbol on chain $currentChain pair...');
+    final response = await http.get(MarketService.getApiUri(queryParameters));
+    final body = jsonDecode(response.body);
+    final price = Decimal.parse((Decimal.parse(body['toTokenAmount']).toDouble() / Decimal.parse(body['fromTokenAmount']).toDouble()).toString());
+    logging('Got price $tokenSymbol/$ccySymbol = $price');
+    return price;
+  }
+
   Future updateToken() async {
     try {
       logging('Loading Token data...');
@@ -227,7 +256,8 @@ class Web3Controller extends GetxController {
       tokenData.value.totalSupply = BigInt.parse((await token.call('totalSupply', [])).toString());
       tokenData.value.reserveAddress = (await token.call('getReserve', [])).toString();
       tokenData.value.reserveBalance = BigInt.parse((await token.call('balanceOf', [tokenData.value.reserveAddress])).toString());
-      //tokenData.value.priceUsd = // TODO
+      tokenData.value.priceUsd = enablePrice ? await fetchPrice() : Decimal.zero;
+
       logging('Token data loaded');
 
       tokenData.refresh();
@@ -243,11 +273,12 @@ class Web3Controller extends GetxController {
       for (var i = 0; i < int.parse(proposalCount.toString()); i++) {
         final tx = await wallet.call('getProposal', [i]);
         final t = WalletTransaction(
-            id: i,
-            destinationAddress: tx[0].toString(),
-            value: BigInt.parse(tx[1].toString()),
-            data: tx[2].toString(),
-            executed: tx[3].toString() == 'true');
+          id: i,
+          destinationAddress: tx[0].toString(),
+          value: BigInt.parse(tx[1].toString()),
+          data: tx[2].toString(),
+          executed: tx[3].toString() == 'true',
+        );
         _transactions.add(t);
       }
       daoData.value.transactions.clear();
@@ -259,6 +290,8 @@ class Web3Controller extends GetxController {
 
   Future updateDelegateSeats() async {
     try {
+      logging('Updating delegate seats...');
+
       var ret = await dao.call('getDelegateSeatAppointmentCounts', []);
 
       daoData.value.appointmentCounts.clear();
@@ -266,11 +299,8 @@ class Web3Controller extends GetxController {
         daoData.value.appointmentCounts[ret[0][i].toString().trim()] = int.parse(ret[1][i].toString());
       }
 
-      ret = await dao.call('getDelegateSeats', []);
-      List<PohProfile> _delegateSeats = [];
-      for (final address in ret) {
-        _delegateSeats.add(await pohService.getProfileData(address));
-      }
+      final addresses = await dao.call('getDelegateSeats', []);
+      List<PohProfile> _delegateSeats = await Future.wait(addresses.map((address) => pohService.getProfileData(address)).toList());
 
       daoData.value.delegateSeats.clear();
       daoData.value.delegateSeats.addAll(_delegateSeats);
@@ -378,8 +408,19 @@ class Web3Controller extends GetxController {
 
   Future claimSeat(int seatNum) async {
     try {
+      logging('Claiming seat number $seatNum..');
       final tx = await dao.call('claimSeat', [seatNum]);
       await updateDelegateSeats();
+      update();
+    } on EthereumException catch (e) {
+      errorDialog(e);
+    }
+  }
+
+  Future distributeDelegationReward() async {
+    try {
+      logging('Distributing delegation reward..');
+      final tx = await dao.call('distributeDelegationReward', []);
       update();
     } on EthereumException catch (e) {
       errorDialog(e);
@@ -389,8 +430,9 @@ class Web3Controller extends GetxController {
 
 void errorDialog(e) {
   Get.defaultDialog(
-      title: "Error",
-      textCancel: "Close",
-      onCancel: () {},
-      middleText: "An error ocurred, check your browser logs for more information\n\nError: ${e.code} ${e.message}");
+    title: "Error",
+    textCancel: "Close",
+    onCancel: () {},
+    middleText: "An error ocurred, check your browser logs for more information\n\nError: ${e.code} ${e.message}",
+  );
 }

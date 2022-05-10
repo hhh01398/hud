@@ -1,10 +1,10 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:humanity_unchained_dao/constants.dart';
 import 'package:humanity_unchained_dao/controllers/web3_controller.dart';
 import 'package:humanity_unchained_dao/responsive.dart';
 import 'package:humanity_unchained_dao/screens/components/delegate_row.dart';
 import 'package:humanity_unchained_dao/screens/components/tooltip.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class DelegatesTable extends StatefulWidget {
   int? limitCount;
@@ -46,7 +46,14 @@ class _DelegatesTableState extends State<DelegatesTable> {
                   sortAscending: ascending,
                   columnSpacing: defaultPadding,
                   columns: [
-                    const DataColumn(label: Text("Identity")),
+                    DataColumn(
+                      label: Row(children: const [
+                        Text("Identity"),
+                        SizedBox(width: 5),
+                        TooltipInfo("Delegate's identity on Proof of Humanity. Click on the avatar to visit the delegate's website."),
+                      ]),
+                    ),
+                    const DataColumn(label: Text("Website")),
                     if (!Responsive.isMobile(context)) const DataColumn(label: Text("Address")),
                     DataColumn(
                         label: Row(children: const [

@@ -3,8 +3,8 @@ import 'package:humanity_unchained_dao/utils/utils.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 
-class StorageInfoCard extends StatelessWidget {
-  const StorageInfoCard({
+class TokenInfoCard extends StatelessWidget {
+  const TokenInfoCard({
     Key? key,
     required this.title,
     required this.svgSrc,
@@ -62,8 +62,7 @@ class StorageInfoCard extends StatelessWidget {
           Column(
             children: [
               Text(formatCcy(marketCap.toDouble()) + ' ' + tokenSymbol),
-              Text((tokenPrice == Decimal.zero ? 'n/a' : formatCcy((tokenPrice * balanceToUnits(numTokens)).toDouble())) + ' USD',
-                  style: Theme.of(context).textTheme.caption!.copyWith(color: Colors.white70)),
+              Text((tokenPrice == Decimal.zero ? 'n/a' : formatCcy((tokenPrice * balanceToUnits(numTokens)).toDouble())) + ' ' + ccySymbol, style: Theme.of(context).textTheme.caption!.copyWith(color: Colors.white70)),
             ],
           )
         ],
