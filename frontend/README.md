@@ -39,7 +39,7 @@ NOTE: that you might want use the same addresses in your web3 wallet as in `smar
 ## Step 3: Build
 
 ```console
-./scripts/build.sh
+sh scripts/build.sh
 ```
 
 ## Step 4: Run web server
@@ -47,7 +47,7 @@ NOTE: that you might want use the same addresses in your web3 wallet as in `smar
 To run an instance of the web server:
 
 ```console
-./scripts/run_server.sh
+sh scripts/run_server.sh
 ```
 
 Open `http://localhost:5000` in your browser.
