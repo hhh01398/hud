@@ -23,7 +23,7 @@ class Avatar extends StatelessWidget {
     if (profile.photoUrl.isNotEmpty && profile.photoUrl != '') {
       pic = NetworkImage(ipfsUrl + profile.photoUrl);
     } else if (profile.ethAddress.toLowerCase() == creatorEthAddress.toLowerCase()) {
-      pic = const AssetImage(creatorAvatarAsset);
+      pic = NetworkImage(creatorAvatarUrl);
     }
 
     if (pic != null) {

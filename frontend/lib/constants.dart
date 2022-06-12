@@ -24,8 +24,8 @@ const selfAvatarSize = 30.0;
 const avatarSize = 15.0;
 
 const creatorEthAddress = '0xD219F00ae0E217552C931f2084CfFd8914d32B48';
-const creatorAvatarAsset = 'assets/images/logo_ext_large_whitebg.jpg';
-const creatorTag = '<DAO creator>';
+const creatorAvatarUrl = 'https://new-free-world.org/assets/img/avatar.png';
+const creatorTag = 'NewFreeWorld';
 
 
 // External links
