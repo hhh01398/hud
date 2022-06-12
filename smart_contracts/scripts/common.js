@@ -447,13 +447,22 @@ function createRandomAddress() {
 }
 
 function chunk(items, size) {
-    const chunks = []
-    items = [].concat(...items)
-    while (items.length) {
-        chunks.push(
-            items.splice(0, size)
-        )
+    const chunks = [];
+    var j = 0;
+    var chunk = [];
+    for (var i = 0; i < items.length; i++) {
+        if (j < size) {
+            chunk.push(items[i]);
+            j++;
+        } else {
+            chunks.push([...chunk]);
+            chunk = []
+            chunk.push(items[i]);
+            j = 1;
+        }
     }
+    chunks.push([...chunk]);
+
     return chunks
 }
 
@@ -483,6 +492,10 @@ const VOTE_STATUS = {
 
 function getKeyByValue(obj, value) {
     return Object.keys(obj).find(key => obj[key] == value);
+}
+
+function sleep(ms) {
+    return new Promise((resolve) => { setTimeout(resolve, ms); });
 }
 
 ///////////////////////////////////////////////////////////////
@@ -520,5 +533,7 @@ module.exports = {
     formatTally,
     validateTallyState,
     createRandomAddress,
-    pohRegisterBulk
+    pohRegisterBulk,
+    chunk,
+    sleep
 };

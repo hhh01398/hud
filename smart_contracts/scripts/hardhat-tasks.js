@@ -3,6 +3,7 @@ const { BN, time } = require('@openzeppelin/test-helpers');
 const fs = require('fs');
 require('@nomiclabs/hardhat-ethers');
 const { TOKEN_SYMBOL } = require('../deployment-params');
+const { retrieveAddressLists } = require('./oracle-utils');
 
 const {
     TALLY_STATUS,
@@ -13,8 +14,11 @@ const {
     initializeAll,
     formatTally,
     getKeyByValue,
-    pohRegisterBulk
+    pohRegisterBulk,
+    chunk
 } = require('./common');
+
+var log = require('debug')('hud:task')
 
 async function getConfig() {
     const config = require('../config.json');
@@ -280,6 +284,36 @@ task('_proposal-encode-deregisterHumans', 'Bulk deregistration of addresses no l
     out(abi);
 })
     .addParam('addresses', 'Addresses belonging to non-humans');
+
+task('_proposal-batch-update-oracle-poh', 'Create a batch of transactions to keep the oracle in sync with Proof of Humanity\'s registry', async (args) => {
+    const config = await getConfig();
+    const addresses = await retrieveAddressLists(config.contractAddresses.poh);
+    const maxnumadressespertx = parseInt(args.maxnumadressespertx);
+
+    const txBatch = {
+        registerHumans: {},
+        deregisterHumans: {},
+    }
+
+    log(`Generation of transactions for newly REGISTERED addresses: Splitting ${addresses.new.length} addresses into chunks of ${maxnumadressespertx} addresses max`);
+    var chunks = chunk(addresses.new, maxnumadressespertx);
+    log(`chunks.length = ${chunks.length}`);
+    for (let i = 0; i < chunks.length; i++) {
+        log(`chunks[${i}].length = ${chunks[i].length}`);
+        txBatch.registerHumans[i] = config.poh.contract.methods.registerHumans(chunks[i]).encodeABI();
+    }
+
+    log(`Generation of transactions for newly UNREGISTERED addresses: Splitting ${addresses.missing.length} addresses into chunks of ${maxnumadressespertx} addresses max`);
+    chunks = chunk(addresses.missing, maxnumadressespertx);
+    log(`chunks.length = ${chunks.length}`);
+    for (let i = 0; i < chunks.length; i++) {
+        log(`chunks[${i}].length = ${chunks[i].length}`);
+        txBatch.deregisterHumans[i] = config.poh.contract.methods.deregisterHumans(chunks[i]).encodeABI();
+    }
+
+    out(txBatch);
+})
+    .addParam('maxnumadressespertx', 'Set maximum number of addresses contained in a transaction', '200', types.string)
 
 task('_proposal-encode-upgrade', 'Upgrade contract', async (args) => {
     const config = await getConfig();
