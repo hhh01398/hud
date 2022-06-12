@@ -23,6 +23,7 @@ class TokenDetails extends StatelessWidget {
         builder: (controller) {
           final t = controller.tokenData.value;
           final d = controller.daoData.value;
+          final tokenAddress = controller.getContractConfig('token')['address'];
 
           return Container(
             padding: const EdgeInsets.all(defaultPadding),
@@ -59,7 +60,7 @@ class TokenDetails extends StatelessWidget {
                         const TooltipInfo('Latest exchange rate available on decentralized exchanges'),
                         const Spacer(),
                         Text((t.priceUsd == Decimal.zero ? 'n/a' : t.priceUsd.toStringAsPrecision(4)) + ' ' + ccySymbol),
-                        OpenBrowser(MarketService.getAppUrl(controller.currentChain, tokenSymbol, ccySymbol)),
+                        OpenBrowser(MarketService.getAppUrl(controller.currentChain, tokenAddress, ccySymbol)),
                       ]),
                       Row(
                         children: [

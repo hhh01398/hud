@@ -7,7 +7,7 @@ class MarketService {
     return Uri.https(exhangeAuthority, exchangeUnencodedPath, queryParameters);
   }
 
-  static String getAppUrl(int chainId, String ccy1, String ccy2) {
-    return exhangeAppUrl + '#/' + chainId.toString() + '/swap/' + ccy1 + '/' + ccy2;
+  static String getAppUrl(int chainId, String ccyOrAddress1, String ccyOrAddress2) {
+    return exhangeAppUrl + '#/' + chainId.toString() + '/swap/' + ccyOrAddress1 + '/' + ccyOrAddress2;
   }
 }
