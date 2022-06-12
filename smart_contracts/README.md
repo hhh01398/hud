@@ -146,8 +146,10 @@ $ yarn task _tally-get --tallyid <TALLY_ID>
 After the tally expiration time, the votes need to be tallied up and, if the proposal was approved, the transaction needs to be executed. The number of tokens to be paid as enaction reward increases exponentially as time passes until a maximum is reached, thus the price of the transaction is automatically determined as any executor in the market will perform the operation when the reward is profitable enough.
 
 ```console
-$ yarn task _tally-execute --tallyid <TALLY_ID>
+$ yarn task _tally-execute --tallyid <TALLY_ID> --gasLimit <GAS_LIMIT>
 ```
+
+Hardhat's transaction gas limit estimation might be lower than the needed one. To use a higher gas limit value, use the `gasLimit` flag.
 
 # Collecting rewards
 
@@ -158,6 +160,30 @@ $ yarn task _token-claimRewards --address <YOUR_ADDRESS>
 ```
 
 <img src="../assets/claimReward.png" alt="Claim reward tokens" height="350px">
+
+# Updating the Proof of Humanity oracle
+
+To update the oracle contract with the latest registered addresses in *Proof of Humanity* oracle, we first need to compare the addresses in both Proof of Humanity and the oracle. Then, the transaction proposal to effectively perform the update needs to be approved by the DAO.
+
+To generate a list of transacions to register and unregister the corresponding addresses in the oracle, run:
+
+```console
+$ DEBUG=hud* POLYGONSCAN_API_KEY=<YOUR_KEY> yarn task _proposal-batch-update-oracle-poh --maxnumadressespertx <NUM_ADDRESSES>
+```
+
+This task will do the following:
+
+1. Retrieve the current list of register addresses in Proof of Humanity via querying PoH's server.
+2. Retrieve the current list of register addresses in the oracle by analyzing the transactions to the oracle using Polygonscan's API.
+3. Compare both address lists and create two lists of transactions, to register and to unregister addresses, to be submited to the DAO for approval.
+
+Use `DEBUG=hud*` to print out logs. `<YOUR_KEY>` is the [Polygon's account API KEY](https://polygonscan.com/). `<NUM_ADDRESSES>` is the maximum number of addresses to update in a single transaction proposal. Beware that a too large number of addresses might result in a transaction that would exceed the chain's block gas limit and could not be included in a block. It is recommended to choose a number that would **not exceed 50% of the block gas limit**.
+
+To submit the transaction, run:
+
+```
+$ yarn task _proposal-submit --recipient poh --data "<TRANSACTION>"
+```
 
 # <a name="runLocally"></a> Development
 
