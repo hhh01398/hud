@@ -5,6 +5,7 @@ import 'package:humanity_unchained_dao/controllers/web3_controller.dart';
 import 'package:humanity_unchained_dao/models/wallet_transaction.dart';
 import 'package:humanity_unchained_dao/responsive.dart';
 import 'package:humanity_unchained_dao/screens/components/button.dart';
+import 'package:humanity_unchained_dao/screens/components/open_browser.dart';
 import 'package:humanity_unchained_dao/screens/components/tooltip.dart';
 import 'package:humanity_unchained_dao/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -53,6 +54,7 @@ class _TransactionsTableState extends State<TransactionsTable> {
               // minWidth: 600,
               columns: [
                 const DataColumn(label: Text("Tx Id")),
+                const DataColumn(label: Text("Website")),
                 if (!Responsive.isMobile(context)) const DataColumn(label: Text("Destination")),
                 if (!Responsive.isMobile(context)) const DataColumn(label: Text("Value")),
                 if (!Responsive.isMobile(context)) const DataColumn(label: Text("Data")),
@@ -79,6 +81,7 @@ DataRow transactionsDataRow(BuildContext context, WalletTransaction transaction)
   return DataRow(
     cells: [
       DataCell(Text(transaction.id.toString())),
+      DataCell(OpenBrowser(urlForum + 't/' + urlForumProposalPrefix + transaction.id.toString())),
       if (!Responsive.isMobile(context)) DataCell(Text(ethAddressShortener(transaction.destinationAddress))),
       if (!Responsive.isMobile(context)) DataCell(Text('${balanceToUnits(BigInt.parse(transaction.value.toString())).toStringAsFixed(4)} ETH')),
       if (!Responsive.isMobile(context)) DataCell(Text(shorten(transaction.data.toString(), 2, 2))),

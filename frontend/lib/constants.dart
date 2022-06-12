@@ -40,6 +40,7 @@ class SocialMediaUrl {
 
 const urlInstructionsMetamask = 'https://docs.polygon.technology/docs/develop/metamask/config-polygon-on-metamask/';
 const urlForum = 'https://forum.humanityunchained.org/';
+const urlForumProposalPrefix = 'transaction-proposal-';
 
 
 // Token
