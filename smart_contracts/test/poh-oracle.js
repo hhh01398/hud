@@ -75,13 +75,13 @@ contract('Proof Of Humanity Oracle', function (accounts) {
         it('Register/deregister addresses in large bulks', async () => {
             let count = await poh.getHumanCount();
             const addresses = [...Array(NUM_ADDRESSES)].map(() => createRandomAddress());
-            await pohRegisterBulk(poh, addresses, 100, updater);
+            await pohRegisterBulk(poh, addresses, NUM_ADDRESSES / 2, updater);
             for (let i = 0; i < addresses.length; i++) {
                 expect(await poh.isRegistered(addresses[i])).to.be.equal(true);
             }
             count = count.add(new BN(NUM_ADDRESSES));
             expect(await poh.getHumanCount()).to.be.bignumber.equal(count);
-            await pohRegisterBulk(poh, addresses, 100, updater, { deregister: true });
+            await pohRegisterBulk(poh, addresses, NUM_ADDRESSES / 2, updater, { deregister: true });
             for (let i = 0; i < addresses.length; i++) {
                 expect(await poh.isRegistered(addresses[i])).to.be.equal(false);
             }

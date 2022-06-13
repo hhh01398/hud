@@ -3,6 +3,7 @@ const { BN, time } = require('@openzeppelin/test-helpers');
 const fs = require('fs');
 require('@nomiclabs/hardhat-ethers');
 const { TOKEN_SYMBOL } = require('../deployment-params');
+const { retrieveAddressLists } = require('./oracle-utils');
 
 const {
     TALLY_STATUS,
@@ -13,29 +14,42 @@ const {
     initializeAll,
     formatTally,
     getKeyByValue,
-    pohRegisterBulk
+    pohRegisterBulk,
+    chunk
 } = require('./common');
+
+var log = require('debug')('hud:task')
 
 async function getConfig() {
     const config = require('../config.json');
     const accounts = [];
+    log('Loading accounts...');
     (await hre.ethers.getSigners()).forEach(e => accounts.push(e.address));
 
+    log('Loading contracts...')
     const ProofOfHumanityOracle = artifacts.require('ProofOfHumanityOracle')
     const Assembly = artifacts.require('Assembly')
     const MultiSigWallet = artifacts.require('Wallet')
     const Token = artifacts.require('Token')
     const Faucet = artifacts.require('Faucet')
 
+    const data = await Promise.allSettled([
+        ProofOfHumanityOracle.at(config.contractAddresses.poh),
+        Assembly.at(config.contractAddresses.assembly),
+        MultiSigWallet.at(config.contractAddresses.wallet),
+        Token.at(config.contractAddresses.token),
+        Faucet.at(config.contractAddresses.faucet),
+    ]);
+
     return {
         accounts: accounts,
         signer: accounts[config.signerIndex || 0],
         roles: getAccountRoles(accounts),
-        poh: await ProofOfHumanityOracle.at(config.contractAddresses.poh),
-        assembly: await Assembly.at(config.contractAddresses.assembly),
-        wallet: await MultiSigWallet.at(config.contractAddresses.wallet),
-        token: await Token.at(config.contractAddresses.token),
-        faucet: await Faucet.at(config.contractAddresses.faucet),
+        poh: data[0].value,
+        assembly: data[1].value,
+        wallet: data[2].value,
+        token: data[3].value,
+        faucet: data[4].value,
         contractAddresses: config.contractAddresses,
     };
 }
@@ -86,71 +100,106 @@ task('_get-config', 'Returns the system configuration (config.json)', async (arg
 task('_get-dao-info', 'Returns various information of the state of the DAO', async (args) => {
     const config = await getConfig();
 
-    const infoPoh = {
-        'updater': await config.poh.getUpdater(),
-        'upgrader': await config.poh.getUpgrader(),
-        'submissionCount': parseInt(await config.poh.submissionCounter()),
-        'humanCount': parseInt(await config.poh.getHumanCount()),
-        'lastUpdateTimestamp': formatDatetime(await config.poh.getLastUpdateTimestamp()),
-        'isTestMode': await config.poh.isTestMode(),
-    };
-
-    const referralRewardParams = await config.assembly.getReferralRewardParams();
-    const infoAssembly = {
-        'creator': await config.assembly.getCreator(),
-        'owner': await config.assembly.getOwner(),
-        'poh': await config.assembly.getPoh(),
-        'wallet': await config.assembly.getWallet(),
-        'faucet': await config.assembly.getFaucet(),
-        'citizenCount': parseInt(await config.assembly.getCitizenCount()),
-        'delegateCount': parseInt(await config.assembly.getDelegateCount()),
-        'delegateSeats': await config.assembly.getDelegateSeats(),
-        'getDelegateSeatAppointmentCounts': await config.assembly.getDelegateSeatAppointmentCounts(),
-        'tallyCount': parseInt(await config.assembly.getTallyCount()),
-        'seatCount': parseInt(await config.assembly.getSeatCount()),
-        'votingPercentThreshold': parseInt(await config.assembly.getVotingPercentThreshold()),
-        'citizenCountQuorum': parseInt(await config.assembly.getQuorum()),
-        'tallyDuration': parseInt(await config.assembly.getTallyDuration()),
-        'delegationRewardRate': formatBalance(await config.assembly.getDelegationRewardRate()),
-        'referredAmount': formatBalance(referralRewardParams[0]),
-        'referrerAmount': formatBalance(referralRewardParams[1]),
-        'execRewardExponentMax': parseInt(await config.assembly.getExecRewardExponentMax()),
-        'lastSnapshotTimestamp': formatDatetime(await config.assembly.getLastSnapshotTimestamp()),
-        'isTestMode': await config.assembly.isTestMode(),
-    };
-
-    const infoWallet = {
-        'assembly': await config.wallet.getAssembly(),
-        'proposalCount': parseInt(await config.wallet.getProposalCount()),
-        'isTestMode': await config.wallet.isTestMode(),
-    };
-
-    const infoToken = {
-        'name': await config.token.name(),
-        'symbol': await config.token.symbol(),
-        'totalSupply': formatBalance(await config.token.totalSupply()),
-        'reserveAddress': await config.token.getReserve(),
-        'balanceOf(reserveAddress)': formatBalance(await config.token.balanceOf(await config.token.getReserve())),
-        'governor': await config.token.getGovernor(),
-        'upgrader': await config.token.getUpgrader(),
-    }
-
-    const infoFaucet = {
-        'assembly': await config.faucet.getAssembly(),
-        'wallet': await config.faucet.getWallet(),
-        'token': await config.faucet.getToken(),
-        'upgrader': await config.faucet.getUpgrader(),
-        'faucetAddress': config.faucet.address,
-        'balanceOf(faucetAddress)': formatBalance(await config.token.balanceOf(config.faucet.address)),
-    }
+    const data = await Promise.allSettled([
+        config.poh.getUpgrader(),
+        config.poh.getUpdater(),
+        config.poh.submissionCounter(),
+        config.poh.getHumanCount(),
+        config.poh.getLastUpdateTimestamp(),
+        config.poh.isTestMode(),
+        config.assembly.getCreator(),
+        config.assembly.getOwner(),
+        config.assembly.getPoh(),
+        config.assembly.getWallet(),
+        config.assembly.getFaucet(),
+        config.assembly.getCitizenCount(),
+        config.assembly.getDelegateCount(),
+        config.assembly.getDelegateSeats(),
+        config.assembly.getDelegateSeatAppointmentCounts(),
+        config.assembly.getTallyCount(),
+        config.assembly.getSeatCount(),
+        config.assembly.getVotingPercentThreshold(),
+        config.assembly.getQuorum(),
+        config.assembly.getTallyDuration(),
+        config.assembly.getDelegationRewardRate(),
+        config.assembly.getReferralRewardParams(),
+        config.assembly.getExecRewardExponentMax(),
+        config.assembly.getLastSnapshotTimestamp(),
+        config.assembly.isTestMode(),
+        config.wallet.getAssembly(),
+        config.wallet.getProposalCount(),
+        config.wallet.isTestMode(),
+        config.token.name(),
+        config.token.symbol(),
+        config.token.totalSupply(),
+        config.token.getReserve(),
+        config.token.getGovernor(),
+        config.token.getUpgrader(),
+        config.faucet.getAssembly(),
+        config.faucet.getWallet(),
+        config.faucet.getToken(),
+        config.faucet.getUpgrader(),
+        config.token.balanceOf(config.faucet.address),
+    ]);
 
     const ret = {
-        poh: infoPoh,
-        assembly: infoAssembly,
-        wallet: infoWallet,
-        token: infoToken,
-        faucet: infoFaucet,
-    }
+        poh: {
+            'address': config.poh.address,
+            'updater': data[0].value,
+            'upgrader': data[1].value,
+            'submissionCount': parseInt(data[2].value),
+            'humanCount': parseInt(data[3].value),
+            'lastUpdateTimestamp': formatDatetime(data[4].value),
+            'isTestMode': data[5].value,
+        },
+        assembly: {
+            'address': config.assembly.address,
+            'creator': data[6].value,
+            'owner': data[7].value,
+            'poh': data[8].value,
+            'wallet': data[9].value,
+            'faucet': data[10].value,
+            'citizenCount': parseInt(data[11].value),
+            'delegateCount': parseInt(data[12].value),
+            'delegateSeats': data[13].value,
+            'getDelegateSeatAppointmentCounts': data[14].value,
+            'tallyCount': parseInt(data[15].value),
+            'seatCount': parseInt(data[16].value),
+            'votingPercentThreshold': parseInt(parseInt(data[17].value)),
+            'citizenCountQuorum': parseInt(data[18].value),
+            'tallyDuration': parseInt(data[19].value),
+            'delegationRewardRate': formatBalance(data[20].value),
+            'referredAmount': formatBalance(data[21].value[0]),
+            'referrerAmount': formatBalance(data[21].value[1]),
+            'execRewardExponentMax': parseInt(data[22].value),
+            'lastSnapshotTimestamp': formatDatetime(data[23].value),
+            'isTestMode': data[24].value,
+        },
+        wallet: {
+            'address': config.wallet.address,
+            'assembly': data[25].value,
+            'proposalCount': parseInt(data[26].value),
+            'isTestMode': data[27].value,
+        },
+        token: {
+            'address': config.token.address,
+            'name': data[28].value,
+            'symbol': data[29].value,
+            'totalSupply': formatBalance(data[30].value),
+            'reserveAddress': data[31].value,
+            'governor': data[32].value,
+            'upgrader': data[33].value,
+        },
+        faucet: {
+            'address': config.faucet.address,
+            'assembly': data[34].value,
+            'wallet': data[35].value,
+            'token': data[36].value,
+            'upgrader': data[37].value,
+            'balanceOf(faucet.address)': formatBalance(data[38].value),
+        }
+    };
+
     out(ret);
 });
 
@@ -281,6 +330,36 @@ task('_proposal-encode-deregisterHumans', 'Bulk deregistration of addresses no l
 })
     .addParam('addresses', 'Addresses belonging to non-humans');
 
+task('_proposal-batch-update-oracle-poh', 'Create a batch of transactions to keep the oracle in sync with Proof of Humanity\'s registry', async (args) => {
+    const config = await getConfig();
+    const addresses = await retrieveAddressLists(config.contractAddresses.poh);
+    const maxnumadressespertx = parseInt(args.maxnumadressespertx);
+
+    const txBatch = {
+        registerHumans: {},
+        deregisterHumans: {},
+    }
+
+    log(`Generation of transactions for newly REGISTERED addresses: Splitting ${addresses.new.length} addresses into chunks of ${maxnumadressespertx} addresses max`);
+    var chunks = chunk(addresses.new, maxnumadressespertx);
+    log(`chunks.length = ${chunks.length}`);
+    for (let i = 0; i < chunks.length; i++) {
+        log(`chunks[${i}].length = ${chunks[i].length}`);
+        txBatch.registerHumans[i] = config.poh.contract.methods.registerHumans(chunks[i]).encodeABI();
+    }
+
+    log(`Generation of transactions for newly UNREGISTERED addresses: Splitting ${addresses.missing.length} addresses into chunks of ${maxnumadressespertx} addresses max`);
+    chunks = chunk(addresses.missing, maxnumadressespertx);
+    log(`chunks.length = ${chunks.length}`);
+    for (let i = 0; i < chunks.length; i++) {
+        log(`chunks[${i}].length = ${chunks[i].length}`);
+        txBatch.deregisterHumans[i] = config.poh.contract.methods.deregisterHumans(chunks[i]).encodeABI();
+    }
+
+    out(txBatch);
+})
+    .addParam('maxnumadressespertx', 'Set maximum number of addresses contained in a transaction', '200', types.string)
+
 task('_proposal-encode-upgrade', 'Upgrade contract', async (args) => {
     const config = await getConfig();
     const abi = config[args.contract].contract.methods.upgradeTo(args.newimplementationaddress).encodeABI();
@@ -291,7 +370,6 @@ task('_proposal-encode-upgrade', 'Upgrade contract', async (args) => {
 
 task('_proposal-submit', 'Submit a transaction proposal to the wallet contract', async (args) => {
     const config = await getConfig();
-
     const value = args.value ? new BN(args.value) : new BN('0');
     const receipt = await config.wallet.submitProposal(getAddress(config, args.recipient), value, args.data, { from: getAddress(config, config.signer) });
     const proposalId = parseInt(receipt.logs[0].args.proposalId.valueOf());
@@ -380,16 +458,24 @@ task('_tally-tallyUp', 'Counts the votes of the given tally', async (args) => {
 
 task('_tally-enact', 'Executes the tally transaction proposal if approved', async (args) => {
     const config = await getConfig();
-    out((await config.assembly.enact(args.tallyid, { from: getAddress(config, args.from) })).tx);
+    out((await config.assembly.enact(args.tallyid, {
+        from: getAddress(config, args.from),
+        gasLimit: args.gaslimit,
+    })).tx);
 })
     .addParam('tallyid', 'The tally to enact')
+    .addParam('gaslimit', 'Limit of the total gas needed for the approved transaction execution')
     .addOptionalParam('from', 'The signer of the operation', '', types.string);
 
 task('_tally-execute', 'Performs both counting votes and executing the transaction proposal (if approved) of a given tally', async (args) => {
     const config = await getConfig();
-    out((await config.assembly.execute(args.tallyid, { from: getAddress(config, args.from) })).tx);
+    out((await config.assembly.execute(args.tallyid, {
+        from: getAddress(config, args.from),
+        gasLimit: args.gaslimit,
+    })).tx);
 })
     .addParam('tallyid', 'The tally to process')
+    .addParam('gaslimit', 'Limit of the total gas needed for both tallying and transaction execution combined')
     .addOptionalParam('from', 'The signer of the operation', '', types.string);
 
 task('_token-distributeDelegationReward', 'Takes a snapshot of the seats and distributes the reward among the delegates accordingly', async (args) => {
