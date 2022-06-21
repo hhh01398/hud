@@ -32,11 +32,46 @@ Currently, transaction proposals can only be submitted [through the command line
 
 **Step 2: The community votes on the transaction proposal**
 
-The DAO has a limited number of *seats*, which are occupied by the delegates who have been appointed by the largest number of citizens. The *voting power* of a seated delegate is proportional to the number of citizens that appointed him/her. For simplicity, the rule *1-human-1-vote* is applied.
+The DAO has a limited number of *seats*, which are occupied by the delegates who have been appointed by the largest number of citizens. The votes from delegates without a seat are not counted. The *voting power* of a seated delegate is proportional to the number of citizens that appointed him/her. For simplicity, the rule *1-citizen-1-vote* is applied.
 
-The voting process is divided into two phases: *deliveration* and *revocation*. Delegates cannot cast votes during the revocation period, **only citizens**. This guarantees citizens the chance to push back any decision from the delegates.
+The voting process is divided into two phases: *deliberation* and *revocation*. Delegates cannot cast votes during the revocation period, **only citizens**. This guarantees citizens the chance to push back any decision from the delegates.
+
+A delegate vote is always *positive*, that is, a no-vote is equivalent to vote against, whereas a citizen vote can be either *positive* or *negative*. The *negative* vote allows citizens to reject a proposal that was approved by the delegates during the *deliberation* phase.
 
 <img src="assets/timeline.png" alt="Timeline" height="200px">
+
+Let us take the following example of a voting:
+
+|||
+--- | --- |
+|Citizens|c1,c2,c3,c4,c5,c6,c7,c8
+|Delegates|d1,d2,d3
+|Total citizen population|8
+|Number of seats|2
+|Delegate appointments|d1:c1,c2,c3,c4; d2:c4,c5; d3:c8
+|Delegates with seat|d1,d2
+|Delegate votes|d1,d2
+|Citizen votes|c1,c2,c4,c4,c5:nay; c6,c7,c8:yay
+|Voting threshold|50%
+
+
+The number of delegated votes is:
+
+`4 (d1) + 2 (d2) = 6 votes`
+
+Since the total number of delegated votes compared to the citizen population surpasses the threshold, i.e. `6 / 8 > 50%`, the **delegate voting result** is *yay*.
+
+Now, the numbers of citizen votes are:
+
+`nay: 5 votes (c1,c2,c4,c4,c5)`
+
+`yay: 3 votes (c6,c7,c8)`
+
+Since the voting threshold has been surpassed (i.e. `5 / 8 > 50%`) and more citizens have voted *nay* than *yay* (i.e. `5 > 3`), then the **citizen voting result** is *nay*.
+
+Since the citizen vote result always overrides the delegate vote result, the final voting result is *nay*, and therefore the proposal's final status will be `NotApproved`. If not enough citizens had voted *nay* to surpass the voting threshold, the proposal's final status would have been `Approved`.
+
+After the tally is ended, the final counting of votes and the execution of the transaction proposal (if approved), has to be triggered externally via a call to the smart contract. Anyone, not only DAO members, can do that call. The elapsed time between the tally end time and final counting should be, in theory, short as there is an economic incentive in HUD tokens for anyone to call the contract accordingly (see the [smart contract documentation](smart_contracts/README.md) for more details). Therefore, it is important to note, even though DAO members cannot cast or change their votes after the tally end, citizens can change their delegation appointments at any time, which could affect the **delegate voting result** and thus the proposal's status during the period between the tally end time and the final counting.
 
 Seated delegates are paid a number of tokens proportional to their *voting power*. This creates an incentive for delegates to compete for citizens’ trust.
 

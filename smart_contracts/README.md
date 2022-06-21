@@ -27,17 +27,36 @@ Currently, transaction proposals can only be submitted [through the command line
 
 **Step 2: The community votes on the transaction proposal**
 
-The voting process is divided into two phases: *deliveration* and *revocation*. Delegates cannot cast votes during the revocation period, **only citizens**. This guarantees citizens the chance to push back any decision from the delegates.
+The voting process is divided into two phases: *deliberation* and *revocation*. Delegates cannot cast votes during the revocation period, **only citizens**. This guarantees citizens the chance to push back any decision from the delegates.
 
 <img src="../assets/castVote_delegates.png" alt="Delegates cast their votes" height="400px">
 
 <img src="../assets/castVote_citizens.png" alt="Citizens cast their votes" height="400px">
+
+Any time during the tally, anyone can call the contrat function to count the votes and update the tally status. This is called *tallying up*.
+
+```console
+yarn task _tally-tallyUp --tallyid <TALLY_ID> --gaslimit <GAS_LIMIT> # Counts the votes and updates the status of a given tally
+```
+
+When doing a call to tally up, both the delegate votes and citizens votes are computed. Note that, with regard to the delegate votes, the number of citizen appointments of the seated delegates at that time is taken, which can change regardless of the votes.
+
 
 **Step 3: The transaction is approved and executed**
 
 If the final result of the voting is `Approved`, the transaction can now be executed.
 
 <img src="../assets/execute_send.png" alt="Execute transaction" height="100px">
+
+The transaciton execution can be done through either of the following two ways:
+
+```console
+yarn task _tally-enact --tallyid <TALLY_ID> --gaslimit <GAS_LIMIT> # Executes the tally transaction proposal (if approved)
+
+or
+
+yarn task _tally-execute --enact  <TALLY_ID> --gaslimit <GAS_LIMIT> # Performs both counting votes and executing the transaction proposal (if approved)  of a given tally
+```
 
 # Setting environment
 
