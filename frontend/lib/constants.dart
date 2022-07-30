@@ -27,7 +27,6 @@ const creatorEthAddress = '0xD219F00ae0E217552C931f2084CfFd8914d32B48';
 const creatorAvatarUrl = 'https://new-free-world.org/assets/img/avatar.png';
 const creatorTag = 'NewFreeWorld';
 
-
 // External links
 
 class SocialMediaUrl {
@@ -35,13 +34,12 @@ class SocialMediaUrl {
   static const String telegram = 'https://t.me/humanityunchaineddao';
   static const String github = 'https://github.com/hhh01398/hud';
   static const String twitter = 'https://twitter.com/UnchainedDAO';
-  static const String odysee = 'https://odysee.com/@HumanityUnchainedDAO';
+  static const String youtube = 'https://www.youtube.com/channel/UCR4Bcj0FpGiIPy1desfIYRw';
 }
 
 const urlInstructionsMetamask = 'https://docs.polygon.technology/docs/develop/metamask/config-polygon-on-metamask/';
 const urlForum = 'https://forum.humanityunchained.org/';
 const urlForumProposalPrefix = 'transaction-proposal-';
-
 
 // Token
 
@@ -54,13 +52,11 @@ const tokenContractAddresses = {
   }
 };
 
-
 // External APIs
 
 const ipfsUrl = 'https://ipfs.kleros.io';
 const pohApiUrl = 'https://api.thegraph.com/subgraphs/name/kleros/proof-of-humanity-mainnet';
 const urlPohProfile = 'https://app.proofofhumanity.id/profile/';
-
 
 // Ethereum
 
@@ -79,7 +75,6 @@ const Map<int, String> chainLongName = {
 const defaultChainNoWeb3Wallet = 137;
 const defaultJsonRpcProviderUrl = 'https://polygon-rpc.com';
 
-
 // Smart contracts
 
 final contractNames = {
@@ -95,7 +90,6 @@ const Map<int, String> citizenVoteMapping = {
   1: 'Yay',
   2: 'Nay',
 };
-
 
 // Development flags
 

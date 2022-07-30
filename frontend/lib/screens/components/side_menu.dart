@@ -97,7 +97,7 @@ class SideMenu extends StatelessWidget {
             ),
             const SizedBox(width: defaultPadding * spacingFactor),
             IconButton(
-              onPressed: () => launch(SocialMediaUrl.odysee),
+              onPressed: () => launch(SocialMediaUrl.youtube),
               icon: const Icon(FontAwesomeIcons.youtube, color: tertiaryColor, size: socialMediaLogoSize),
             ),
           ]),
