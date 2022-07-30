@@ -27,7 +27,7 @@ class DashboardScreen extends StatelessWidget {
               Column(children: [
                 TalliesTable(limitCount: 10),
                 const SizedBox(height: defaultPadding),
-                SeatsTable(limitCount: 10),
+                SeatsTable(),
                 const SizedBox(height: defaultPadding),
                 const TokenDetails(),
                 const SizedBox(height: defaultPadding),
@@ -55,7 +55,7 @@ class DashboardScreen extends StatelessWidget {
                         const SizedBox(height: defaultPadding),
                         TransactionsTable(limitCount: 10),
                         const SizedBox(height: defaultPadding),
-                        SeatsTable(limitCount: 10),
+                        SeatsTable(),
                         const SizedBox(height: defaultPadding),
                         DelegatesForm(),
                         const SizedBox(height: defaultPadding),
