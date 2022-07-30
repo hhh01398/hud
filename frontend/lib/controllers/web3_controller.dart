@@ -189,9 +189,9 @@ class Web3Controller extends GetxController {
         final t = Tally();
         t.id = i;
         t.proposalId = int.parse(obj[0].toString());
-        t.submissionTime = DateTime.fromMillisecondsSinceEpoch(int.parse(obj[1].toString()));
-        t.revocationPeriodStartTime = DateTime.fromMillisecondsSinceEpoch(int.parse(obj[2].toString()));
-        t.votingEndTime = DateTime.fromMillisecondsSinceEpoch(int.parse(obj[3].toString()));
+        t.submissionTime = DateTime.fromMillisecondsSinceEpoch(int.parse(obj[1].toString()) * 1000);
+        t.revocationPeriodStartTime = DateTime.fromMillisecondsSinceEpoch(int.parse(obj[2].toString()) * 1000);
+        t.votingEndTime = DateTime.fromMillisecondsSinceEpoch(int.parse(obj[3].toString()) * 1000);
         t.delegatedYays = int.parse(obj[4].toString());
         t.citizenYays = int.parse(obj[5].toString());
         t.citizenNays = int.parse(obj[6].toString());
