@@ -296,14 +296,14 @@ async function createAndApprove(assembly, roles, proposalId) {
 }
 
 async function buildPopulationScenario(roles, poh, assembly) {
-    await poh.registerHuman(roles.citizen1);
-    await poh.registerHuman(roles.citizen2);
-    await poh.registerHuman(roles.citizen3);
-    await poh.registerHuman(roles.citizen4);
-    await poh.registerHuman(roles.citizen5);
-    await poh.registerHuman(roles.delegate1);
-    await poh.registerHuman(roles.delegate2);
-    await poh.registerHuman(roles.delegate3)
+    await poh.registerHuman(roles.citizen1, { from: roles.updater });
+    await poh.registerHuman(roles.citizen2, { from: roles.updater });
+    await poh.registerHuman(roles.citizen3, { from: roles.updater });
+    await poh.registerHuman(roles.citizen4, { from: roles.updater });
+    await poh.registerHuman(roles.citizen5, { from: roles.updater });
+    await poh.registerHuman(roles.delegate1, { from: roles.updater });
+    await poh.registerHuman(roles.delegate2, { from: roles.updater });
+    await poh.registerHuman(roles.delegate3, { from: roles.updater })
 
     await assembly.applyForCitizenship({ from: roles.citizen1 });
     await assembly.applyForCitizenship({ from: roles.citizen2 });
