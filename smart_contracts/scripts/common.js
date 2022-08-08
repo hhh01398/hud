@@ -93,6 +93,10 @@ function getAccountRoles(accounts) {
     };
 }
 
+function getGasPrice() {
+    return process.env.GAS_PRICE;
+}
+
 async function deployPohOracle(artifacts) {
     const ERC1967Proxy = artifacts.require('@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy');
     const ProofOfHumanityOracle = artifacts.require('ProofOfHumanityOracle');
@@ -502,6 +506,7 @@ function sleep(ms) {
 
 module.exports = {
     getAccountRoles,
+    getGasPrice,
     deploymentParams,
     deployPohOracle,
     deployAssembly,

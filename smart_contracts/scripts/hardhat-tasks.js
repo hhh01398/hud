@@ -10,6 +10,7 @@ const {
     TALLY_PHASE,
     VOTE_STATUS,
     getAccountRoles,
+    getGasPrice,
     deployAll,
     initializeAll,
     formatTally,
@@ -247,40 +248,40 @@ task('_time-getlatest', 'Returns the current EVM time', async (args) => {
 
 task('_humanity-set', "Registers the address as human's", async (args) => {
     const config = await getConfig();
-    out((await config.poh.registerHuman(getAddress(config, args.address))).tx);
+    out((await config.poh.registerHuman(getAddress(config, args.address), { gasPrice: getGasPrice() })).tx);
 })
     .addParam('address', 'The address of the human');
 
 task('_humanity-set-bulk', "Registers the address as human's", async (args) => {
     const config = await getConfig();
     const addresses = fs.readFileSync(args.inputfile, { encoding: 'ascii' }).split('\n');
-    out(await pohRegisterBulk(config.poh, addresses, args.numaddressespertransaction, getAddress(config, 0)));
+    out(await pohRegisterBulk(config.poh, addresses, args.numaddressespertransaction, getAddress(config, 0), { gasPrice: getGasPrice() }));
 })
     .addParam('inputfile', 'The path to the file containing a list of addresses')
     .addOptionalParam('numaddressespertransaction', 'Send addresses in smaller slices', 200, types.int);
 
 task('_delegate-apply', 'Apply for delegation', async (args) => {
     const config = await getConfig();
-    out((await config.assembly.applyForDelegation({ from: getAddress(config, args.from) })).tx);
+    out((await config.assembly.applyForDelegation({ from: getAddress(config, args.from), gasPrice: getGasPrice() })).tx);
 })
     .addOptionalParam('from', 'The human to become a delegate', '', types.string)
 
 task('_citizen-apply', 'Apply for citizenship', async (args) => {
     const config = await getConfig();
-    out((await config.assembly.applyForCitizenship({ from: getAddress(config, args.from) })).tx);
+    out((await config.assembly.applyForCitizenship({ from: getAddress(config, args.from), gasPrice: getGasPrice() })).tx);
 })
     .addOptionalParam('from', 'The human to become a citizen', '', types.string)
 
 task('_delegate-appoint', 'Appoint a delegate', async (args) => {
     const config = await getConfig();
-    out((await config.assembly.appointDelegate(getAddress(config, args.delegate), { from: getAddress(config, args.from) })).tx);
+    out((await config.assembly.appointDelegate(getAddress(config, args.delegate), { from: getAddress(config, args.from), gasPrice: getGasPrice() })).tx);
 })
     .addParam('delegate', 'The address of the delegate')
     .addOptionalParam('from', 'The human to appoint the delegate', '', types.string)
 
 task('_delegate-claimseat', 'Claim a given seat number', async (args) => {
     const config = await getConfig();
-    out((await config.assembly.claimSeat(args.seatnum, { from: getAddress(config, args.from) })).tx);
+    out((await config.assembly.claimSeat(args.seatnum, { from: getAddress(config, args.from), gasPrice: getGasPrice() })).tx);
 
 })
     .addParam('seatnum', 'The seat number to claim')
@@ -448,8 +449,8 @@ task('_tally-get-vote', 'Gets the tally details', async (args) => {
 
 task('_tally-delegate-vote', 'Cast a vote on a given tally as a delegate', async (args) => {
     const config = await getConfig();
-    const vote = parseInt(args.vote)
-    out((await config.assembly.castDelegateVote(args.tallyid, vote == 1, { from: getAddress(config, args.voter) })).tx);
+    const vote = parseInt(args.vote);
+    out((await config.assembly.castDelegateVote(args.tallyid, vote == 1, { from: getAddress(config, args.voter), gasPrice: getGasPrice() })).tx);
 })
     .addParam('tallyid', 'The tally in question')
     .addParam('vote', '1 for yes, 0 for no')
@@ -457,8 +458,8 @@ task('_tally-delegate-vote', 'Cast a vote on a given tally as a delegate', async
 
 task('_tally-citizen-vote', 'Cast a vote on a given tally as a citizen', async (args) => {
     const config = await getConfig();
-    const vote = parseInt(args.vote)
-    out((await config.assembly.castCitizenVote(args.tallyid, vote == 1, { from: getAddress(config, args.voter) })).tx);
+    const vote = parseInt(args.vote);
+    out((await config.assembly.castCitizenVote(args.tallyid, vote == 1, { from: getAddress(config, args.voter), gasPrice: getGasPrice() })).tx);
 })
     .addParam('tallyid', 'The tally in question')
     .addParam('vote', '1 for yes, 0 for no')
@@ -476,6 +477,7 @@ task('_tally-enact', 'Executes the tally transaction proposal if approved', asyn
     out((await config.assembly.enact(args.tallyid, {
         from: getAddress(config, args.from),
         gasLimit: args.gaslimit,
+        gasPrice: getGasPrice()
     })).tx);
 })
     .addParam('tallyid', 'The tally to enact')
@@ -487,6 +489,7 @@ task('_tally-execute', 'Performs both counting votes and executing the transacti
     out((await config.assembly.execute(args.tallyid, {
         from: getAddress(config, args.from),
         gasLimit: args.gaslimit,
+        gasPrice: getGasPrice()
     })).tx);
 })
     .addParam('tallyid', 'The tally to process')
@@ -495,18 +498,18 @@ task('_tally-execute', 'Performs both counting votes and executing the transacti
 
 task('_token-distributeDelegationReward', 'Takes a snapshot of the seats and distributes the reward among the delegates accordingly', async (args) => {
     const config = await getConfig();
-    out((await config.assembly.distributeDelegationReward({ from: getAddress(config, args.signer) })).tx);
+    out((await config.assembly.distributeDelegationReward({ from: getAddress(config, args.signer), gasPrice: getGasPrice() })).tx);
 })
 
 task('_token-claimRewards', "Transfer any earned rewards except referral's", async (args) => {
     const config = await getConfig();
-    out((await config.assembly.claimRewards({ from: getAddress(config, args.address) })).tx);
+    out((await config.assembly.claimRewards({ from: getAddress(config, args.address), gasPrice: getGasPrice() })).tx);
 })
     .addOptionalParam('address', 'The address to claim the rewards for')
 
 task('_token-claimReferralReward', 'Transfer any earned referral rewards', async (args) => {
     const config = await getConfig();
-    out((await config.assembly.claimReferralReward(getAddress(config, args.referrer), { from: getAddress(config, args.from) })).tx);
+    out((await config.assembly.claimReferralReward(getAddress(config, args.referrer), { from: getAddress(config, args.from), gasPrice: getGasPrice() })).tx);
 })
     .addOptionalParam('referrer', 'The address to claim the reward for')
     .addOptionalParam('from', 'The signer of the operation', '', types.string);
@@ -517,7 +520,7 @@ task('_token-get-balance', 'Returns the balance in tokens of a given address', a
     const balance = await config.token.balanceOf(address);
     out(formatBalance(balance));
 })
-    .addOptionalParam('address', 'The address from which to check the balance')
+    .addOptionalParam('address', 'The address from which to check the balance');
 
 task('_contracts-deploy', 'Deploys a whole new instance of contracts', async (args) => {
     [poh, assembly, wallet, token, faucet] = await deployAll(artifacts, { testable: args.testable });
