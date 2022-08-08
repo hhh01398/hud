@@ -1,4 +1,5 @@
 const { BN, time } = require('@openzeppelin/test-helpers');
+const { exec } = require('child_process');
 const { expect } = require('chai');
 const deploymentParams = require('../deployment-params');
 
@@ -64,6 +65,7 @@ const REVERT_MESSAGES = {
     notTrusted: 'You are not trusted to perform this operation',
     noRewardToClaim: 'Your reward balance is zero'
 }
+const TASK_COMMAND_PREFIX = 'yarn --silent task';
 
 ///////////////////////////////////////////////////////////////
 // common functions 
@@ -502,6 +504,27 @@ function sleep(ms) {
     return new Promise((resolve) => { setTimeout(resolve, ms); });
 }
 
+function execShellCommand(cmd) {
+    return new Promise((resolve, reject) => {
+        exec(cmd, (error, stdout, stderr) => {
+            if (error) {
+                console.error(error);
+                throw new Error(error);
+            }
+            resolve(stdout ? stdout : stderr);
+        });
+    });
+}
+
+async function execTask(cmd) {
+    const execShellCommandOut = await execShellCommand(`${TASK_COMMAND_PREFIX} ${cmd}`);
+    try {
+        const ret = JSON.parse(execShellCommandOut);
+        return ret;
+    } catch (_) { }
+    return execShellCommandOut;
+}
+
 ///////////////////////////////////////////////////////////////
 
 module.exports = {
@@ -540,5 +563,6 @@ module.exports = {
     createRandomAddress,
     pohRegisterBulk,
     chunk,
-    sleep
+    sleep,
+    execTask
 };

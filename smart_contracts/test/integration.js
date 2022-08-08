@@ -1,6 +1,5 @@
 const { BN } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
-const { exec } = require('child_process');
 require('@nomiclabs/hardhat-ethers');
 const AssemblyUpgrade = artifacts.require('AssemblyUpgrade');
 
@@ -10,7 +9,7 @@ const {
 } = require('../scripts/hardhat-tasks');
 
 const {
-    SOME_UINT
+    execTask,
 } = require('../scripts/common');
 
 const TASK_COMMAND_PREFIX = 'yarn --silent task';
@@ -20,28 +19,8 @@ const ADDRESSES = ['0x0000000000000000000000000000000000000000', '0x000000000000
 const RECEIVER = ADDRESSES[0];
 const ADDRESSES_FILE_PATH = 'test/test_artifacts/addresses_sample.txt';
 
-function execShellCommand(cmd) {
-    return new Promise((resolve, reject) => {
-        exec(cmd, (error, stdout, stderr) => {
-            if (error) {
-                console.error(error);
-                throw new Error(error);
-            }
-            resolve(stdout ? stdout : stderr);
-        });
-    });
-}
 
-async function execTask(cmd) {
-    const execShellCommandOut = await execShellCommand(`${TASK_COMMAND_PREFIX} ${cmd}`);
-    try {
-        const ret = JSON.parse(execShellCommandOut);
-        return ret;
-    } catch (_) { }
-    return execShellCommandOut;
-}
-
-async function runTallyProcess(proposalId) {
+async function runTallyProcess(proposalId, { stepCount = 1 } = {}) {
     const tallyId = parseInt(await execTask(`_tally-create --proposalid ${proposalId}`));
     await execTask(`_tally-delegate-vote --tallyid ${tallyId} --voter 0 --vote 1`);
     await execTask(`_tally-delegate-vote --tallyid ${tallyId} --voter 1 --vote 1`);
