@@ -100,63 +100,100 @@ function getGasPrice() {
     return process.env.GAS_PRICE;
 }
 
+async function deployImplementationContractPohOracle(artifacts) {
+    const ProofOfHumanityOracle = artifacts.require('ProofOfHumanityOracle');
+    return await ProofOfHumanityOracle.new({gasPrice: getGasPrice()});
+}
+
+async function deployImplementationContractPohOracleTestable(artifacts) {
+    const ProofOfHumanityOracleTestable = artifacts.require('ProofOfHumanityOracleTestable');
+    return await ProofOfHumanityOracleTestable.new({gasPrice: getGasPrice()});
+}
+
 async function deployPohOracle(artifacts) {
     const ERC1967Proxy = artifacts.require('@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy');
     const ProofOfHumanityOracle = artifacts.require('ProofOfHumanityOracle');
 
-    return await ProofOfHumanityOracle.at((await ERC1967Proxy.new((await ProofOfHumanityOracle.new()).address, '0x')).address);
+    return await ProofOfHumanityOracle.at((await ERC1967Proxy.new((await deployImplementationContractPohOracle(artifacts)).address, '0x')).address);
 }
 
 async function deployPohOracleTestable(artifacts) {
     const ERC1967Proxy = artifacts.require('@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy');
     const ProofOfHumanityOracle = artifacts.require('ProofOfHumanityOracle');
-    const ProofOfHumanityOracleTestable = artifacts.require('ProofOfHumanityOracleTestable');
 
-    return await ProofOfHumanityOracle.at((await ERC1967Proxy.new((await ProofOfHumanityOracleTestable.new()).address, '0x')).address);
+    return await ProofOfHumanityOracle.at((await ERC1967Proxy.new((await deployImplementationContractPohOracleTestable(artifacts)).address, '0x')).address);
+}
+
+async function deployImplementationContractAssembly(artifacts) {
+    const Assembly = artifacts.require('Assembly');
+    return await Assembly.new({gasPrice: getGasPrice()});
+}
+
+async function deployImplementationContractAssemblyTestable(artifacts) {
+    const AssemblyTestable = artifacts.require('AssemblyTestable');
+    return await AssemblyTestable.new({gasPrice: getGasPrice()});
 }
 
 async function deployAssembly(artifacts) {
     const ERC1967Proxy = artifacts.require('@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy');
     const Assembly = artifacts.require('Assembly');
 
-    return await Assembly.at((await ERC1967Proxy.new((await Assembly.new()).address, '0x')).address);
+    return await Assembly.at((await ERC1967Proxy.new((await deployImplementationContractAssembly(artifacts)).address, '0x')).address);
 }
 
 async function deployAssemblyTestable(artifacts) {
     const ERC1967Proxy = artifacts.require('@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy');
     const Assembly = artifacts.require('Assembly');
-    const AssemblyTestable = artifacts.require('AssemblyTestable');
 
-    return await Assembly.at((await ERC1967Proxy.new((await AssemblyTestable.new()).address, '0x')).address);
+    return await Assembly.at((await ERC1967Proxy.new((await deployImplementationContractAssemblyTestable(artifacts)).address, '0x')).address);
+}
+
+async function deployImplementationContractWallet(artifacts) {
+    const Wallet = artifacts.require('Wallet');
+    return await Wallet.new({gasPrice: getGasPrice()});
+}
+
+async function deployImplementationContractWalletTestable(artifacts) {
+    const WalletTestable = artifacts.require('WalletTestable');
+    return await WalletTestable.new({gasPrice: getGasPrice()});
 }
 
 async function deployWallet(artifacts) {
     const ERC1967Proxy = artifacts.require('@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy');
     const Wallet = artifacts.require('Wallet');
 
-    return await Wallet.at((await ERC1967Proxy.new((await Wallet.new()).address, '0x')).address);
+    return await Wallet.at((await ERC1967Proxy.new((await deployImplementationContractWallet(artifacts)).address, '0x')).address);
 }
 
 async function deployWalletTestable(artifacts) {
     const ERC1967Proxy = artifacts.require('@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy');
     const Wallet = artifacts.require('Wallet');
-    const WalletTestable = artifacts.require('WalletTestable');
 
-    return await Wallet.at((await ERC1967Proxy.new((await WalletTestable.new()).address, '0x')).address);
+    return await Wallet.at((await ERC1967Proxy.new((await deployImplementationContractWalletTestable(artifacts)).address, '0x')).address);
+}
+
+async function deployImplementationContractToken(artifacts) {
+    const Token = artifacts.require('Token');
+    return await Token.new({gasPrice: getGasPrice()});
 }
 
 async function deployToken(artifacts) {
     const ERC1967Proxy = artifacts.require('@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy');
     const Token = artifacts.require('Token');
 
-    return await Token.at((await ERC1967Proxy.new((await Token.new()).address, '0x')).address);
+    return await Token.at((await ERC1967Proxy.new((await deployImplementationContractToken(artifacts)).address, '0x')).address);
+}
+
+async function deployImplementationContractFaucet(artifacts) {
+    const Faucet = artifacts.require('Faucet');
+    return await Faucet.new({gasPrice: getGasPrice()});
 }
 
 async function deployFaucet(artifacts) {
     const ERC1967Proxy = artifacts.require('@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy');
     const Faucet = artifacts.require('Faucet');
 
-    return await Faucet.at((await ERC1967Proxy.new((await Faucet.new()).address, '0x')).address);
+    return await Faucet.at((await ERC1967Proxy.new((await deployImplementationContractFaucet(artifacts)).address, '0x')).address);
 }
 
 async function deployAll(artifacts, { testable = false } = {}) {
@@ -538,6 +575,11 @@ module.exports = {
     deployFaucet,
     deployAll,
     deployWalletTestable,
+    deployImplementationContractPohOracle,
+    deployImplementationContractAssembly,
+    deployImplementationContractWallet,
+    deployImplementationContractToken,
+    deployImplementationContractFaucet,
     initializePohOracle,
     initializeAssembly,
     initializeWallet,
