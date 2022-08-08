@@ -20,8 +20,10 @@ const {
 
 var log = require('debug')('hud:task')
 
+const DEFAULT_CONFIG_FILENAME = 'config.json';
+
 async function getConfig() {
-    const config = require('../config.json');
+    const config = require(`../${DEFAULT_CONFIG_FILENAME}`);
     const accounts = [];
     log('Loading accounts...');
     (await hre.ethers.getSigners()).forEach(e => accounts.push(e.address));
@@ -87,7 +89,20 @@ function out(obj, stringify = true) {
     }
 }
 
-task('_get-config', 'Returns the system configuration (config.json)', async (args) => {
+function setConfig(poh, assembly, wallet, token, faucet) {
+    const ret = {
+        contractAddresses: {
+            poh: poh.address,
+            assembly: assembly.address,
+            wallet: wallet.address,
+            token: token.address,
+            faucet: faucet.address,
+        }
+    };
+    fs.writeFileSync(DEFAULT_CONFIG_FILENAME, JSON.stringify(ret, null, 4));
+}
+
+task('_get-config', `Returns the system configuration (${DEFAULT_CONFIG_FILENAME})`, async (args) => {
     const config = await getConfig();
     out({
         accounts: config.accounts,
@@ -526,7 +541,7 @@ task('_contracts-deploy', 'Deploys a whole new instance of contracts', async (ar
     }
 })
     .addOptionalParam('testable', 'Deploy testable contracts (Note: do *NOT* use this in production!)', false, types.boolean)
-    .addOptionalParam('output', 'The output file where to write the configuration file containing the contract addresses', 'config.json', types.string)
+    .addOptionalParam('output', 'The output file where to write the configuration file containing the contract addresses', DEFAULT_CONFIG_FILENAME, types.string)
 
 task('_contracts-initialize', 'Initializes all contracts', async (args) => {
     const config = await getConfig();
