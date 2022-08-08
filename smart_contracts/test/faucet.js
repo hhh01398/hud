@@ -34,7 +34,7 @@ contract('Faucet', function (accounts) {
         });
 
         it('Must initialize first', async () => {
-            await expectRevert(faucet.send(ADDR, 1, []), REVERT_MESSAGES.notInitializedYed);
+            await expectRevert(faucet.send(ADDR, 1, []), REVERT_MESSAGES.notInitializedYet);
         });
 
         it('Validation of initialization arguments', async () => {

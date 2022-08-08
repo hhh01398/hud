@@ -12,7 +12,7 @@ const SOME_UINT = '1234567890';
 const DEFAULT_THRESHOLD = new BN('50');
 const REVERT_MESSAGES = {
     cannotDoThis: 'You are not allowed to do this',
-    notInitializedYed: 'Contract has not yet been initialized',
+    notInitializedYet: 'Contract has not yet been initialized',
     pohCannotZero: 'PoH contract address cannot be zero',
     assemblyCannotZero: 'Assembly contract address cannot be zero',
     walletCannotZero: 'Wallet contract address cannot be zero',
@@ -63,7 +63,14 @@ const REVERT_MESSAGES = {
     newAddressMustDiff: 'The new address must be different',
     wrongProposalId: 'Wrong proposal id',
     notTrusted: 'You are not trusted to perform this operation',
-    noRewardToClaim: 'Your reward balance is zero'
+    noRewardToClaim: 'Your reward balance is zero',
+    wrongProposalStatus: 'Wrong proposal status',
+    proposalOnlyCreator: 'Only the proposal creator can perform this operation',
+    proposalCannotChange: 'Proposal was already submitted and cannot be changed',
+    proposalFullyExecuted: 'Proposal was already fully executed',
+    proposalStepNotExecuted: 'Proposal step could not be executed',
+    needToFillEmptyStepsFirst: 'You need to submit at least one transaction into any prior empty steps first',
+    emptyProposal: 'No transactions were submitted for this proposal',
 }
 const TASK_COMMAND_PREFIX = 'yarn --silent task';
 const GAS_LIMIT = 10000000;
@@ -278,6 +285,15 @@ async function initializeAll(poh, assembly, wallet, token, faucet, roles) {
 ///////////////////////////////////////////////////////////////
 // functions relying on assembly-wallet integration
 ///////////////////////////////////////////////////////////////
+
+async function createProposal(wallet, fromAddress) {
+    const receipt = await wallet.createProposal({ from: fromAddress });
+    return receipt.logs[0].args.proposalId.valueOf();
+}
+
+async function submitTransaction(wallet, destination, value, data, proposalId, stepNum, fromAddress) {
+    return (await wallet.submitTransaction(destination, value, data, proposalId, stepNum, { from: fromAddress })).logs[0].args.transactionId.valueOf();
+}
 
 async function createTally(assembly, proposalId, roles) {
     receipt = await assembly.createTally(proposalId, { from: roles.delegate1 });
@@ -534,6 +550,13 @@ const VOTE_STATUS = {
     Nay: 2
 }
 
+const PROPOSAL_STATUS = {
+    Created: 0,
+    Submitted: 1,
+    PartiallyExecuted: 2,
+    FullyExecuted: 3
+}
+
 function getKeyByValue(obj, value) {
     return Object.keys(obj).find(key => obj[key] == value);
 }
@@ -588,6 +611,8 @@ module.exports = {
     initializeAll,
     buildPopulationScenario,
     buildSeatScenario,
+    createProposal,
+    submitTransaction,
     createTally,
     createAndApprove,
     SOME_UINT,
@@ -595,6 +620,7 @@ module.exports = {
     TALLY_STATUS,
     TALLY_PHASE,
     VOTE_STATUS,
+    PROPOSAL_STATUS,
     getKeyByValue,
     REVERT_MESSAGES,
     ZERO_ADDRESS,

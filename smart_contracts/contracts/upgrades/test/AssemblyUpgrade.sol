@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.11;
 
-import "../Token.sol";
+import "../../mocks/AssemblyTestable.sol";
 
-contract TokenUpgrade is Token {
+contract AssemblyUpgrade is AssemblyTestable {
     function additionalFunction(uint256 i) public pure returns (uint256) {
         return i;
     }
