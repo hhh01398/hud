@@ -10,6 +10,7 @@ const {
 
 const {
     execTask,
+    GAS_LIMIT,
 } = require('../scripts/common');
 
 const TASK_COMMAND_PREFIX = 'yarn --silent task';

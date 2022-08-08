@@ -66,6 +66,7 @@ const REVERT_MESSAGES = {
     noRewardToClaim: 'Your reward balance is zero'
 }
 const TASK_COMMAND_PREFIX = 'yarn --silent task';
+const GAS_LIMIT = 10000000;
 
 ///////////////////////////////////////////////////////////////
 // common functions 
@@ -555,6 +556,7 @@ module.exports = {
     getKeyByValue,
     REVERT_MESSAGES,
     ZERO_ADDRESS,
+    GAS_LIMIT,
     distributeDelegationReward,
     makeMap,
     parseTally,
