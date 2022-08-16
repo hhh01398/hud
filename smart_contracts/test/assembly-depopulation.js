@@ -11,6 +11,8 @@ const {
     distrust,
     createTally,
     parseTally,
+    createProposal,
+    submitTransaction,
     ZERO_ADDRESS,
     REVERT_MESSAGES,
     TALLY_STATUS
@@ -34,12 +36,15 @@ async function runAssemblyDepopulationTests(artifacts, accounts) {
         await assembly.setTestMode(true);
         await buildSeatScenario(roles, poh, assembly);
 
-        const tx = await wallet.submitProposal(
-            assembly.address,
+        const proposalId = await createProposal(wallet, roles.delegate1);
+        await submitTransaction(wallet,
+            token.address,
             0,
             assembly.contract.methods.setReferralRewardParams(1, 1).encodeABI(),
-            { from: roles.delegate1 });
-        const proposalId = tx.logs[0].args.proposalId.valueOf()
+            proposalId,
+            0,
+            roles.delegate1);
+        await wallet.submitProposal(proposalId, { from: roles.delegate1 });
 
         tallyId = await createTally(assembly, proposalId, roles);
         await assembly.castDelegateVote(tallyId, true, { from: roles.delegate1 });

@@ -49,8 +49,8 @@ else
   start_hardhat
 fi
 
-for contract in assembly-initialization assembly-configuration assembly-population assembly-evolution assembly-incentivation assembly-depopulation faucet wallet token poh-oracle integration; do
-  node_modules/.bin/hardhat --network localhost test test/$contract.js
+for contract in upgrade0_local; do
+  node_modules/.bin/hardhat --network localhost test test/upgrades/$contract.js
   if [ $run_own_hardhat = true ]; then
     cleanup
     start_hardhat

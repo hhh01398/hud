@@ -9,8 +9,15 @@ const {
     TALLY_STATUS,
     TALLY_PHASE,
     VOTE_STATUS,
+    PROPOSAL_STATUS,
     getAccountRoles,
+    getGasPrice,
     deployAll,
+    deployImplementationContractPohOracle,
+    deployImplementationContractAssembly,
+    deployImplementationContractWallet,
+    deployImplementationContractToken,
+    deployImplementationContractFaucet,
     initializeAll,
     formatTally,
     getKeyByValue,
@@ -20,8 +27,10 @@ const {
 
 var log = require('debug')('hud:task')
 
+const DEFAULT_CONFIG_FILENAME = 'config.json';
+
 async function getConfig() {
-    const config = require('../config.json');
+    const config = require(`../${DEFAULT_CONFIG_FILENAME}`);
     const accounts = [];
     log('Loading accounts...');
     (await hre.ethers.getSigners()).forEach(e => accounts.push(e.address));
@@ -87,7 +96,20 @@ function out(obj, stringify = true) {
     }
 }
 
-task('_get-config', 'Returns the system configuration (config.json)', async (args) => {
+function setConfig(poh, assembly, wallet, token, faucet) {
+    const ret = {
+        contractAddresses: {
+            poh: poh.address,
+            assembly: assembly.address,
+            wallet: wallet.address,
+            token: token.address,
+            faucet: faucet.address,
+        }
+    };
+    fs.writeFileSync(DEFAULT_CONFIG_FILENAME, JSON.stringify(ret, null, 4));
+}
+
+task('_get-config', `Returns the system configuration (${DEFAULT_CONFIG_FILENAME})`, async (args) => {
     const config = await getConfig();
     out({
         accounts: config.accounts,
@@ -128,6 +150,7 @@ task('_get-dao-info', 'Returns various information of the state of the DAO', asy
         config.assembly.isTestMode(),
         config.wallet.getAssembly(),
         config.wallet.getProposalCount(),
+        config.wallet.getTransactionCount(),
         config.wallet.isTestMode(),
         config.token.name(),
         config.token.symbol(),
@@ -179,24 +202,25 @@ task('_get-dao-info', 'Returns various information of the state of the DAO', asy
             'address': config.wallet.address,
             'assembly': data[25].value,
             'proposalCount': parseInt(data[26].value),
-            'isTestMode': data[27].value,
+            'transactionCount': parseInt(data[27].value),
+            'isTestMode': data[28].value,
         },
         token: {
             'address': config.token.address,
-            'name': data[28].value,
-            'symbol': data[29].value,
-            'totalSupply': formatBalance(data[30].value),
-            'reserveAddress': data[31].value,
-            'governor': data[32].value,
-            'upgrader': data[33].value,
+            'name': data[29].value,
+            'symbol': data[30].value,
+            'totalSupply': formatBalance(data[31].value),
+            'reserveAddress': data[32].value,
+            'governor': data[33].value,
+            'upgrader': data[34].value,
         },
         faucet: {
             'address': config.faucet.address,
-            'assembly': data[34].value,
-            'wallet': data[35].value,
-            'token': data[36].value,
-            'upgrader': data[37].value,
-            'balanceOf(faucet.address)': formatBalance(data[38].value),
+            'assembly': data[35].value,
+            'wallet': data[36].value,
+            'token': data[37].value,
+            'upgrader': data[38].value,
+            'balanceOf(faucet.address)': formatBalance(data[39].value),
         }
     };
 
@@ -232,60 +256,60 @@ task('_time-getlatest', 'Returns the current EVM time', async (args) => {
 
 task('_humanity-set', "Registers the address as human's", async (args) => {
     const config = await getConfig();
-    out((await config.poh.registerHuman(getAddress(config, args.address))).tx);
+    out((await config.poh.registerHuman(getAddress(config, args.address), { gasPrice: getGasPrice() })).tx);
 })
     .addParam('address', 'The address of the human');
 
 task('_humanity-set-bulk', "Registers the address as human's", async (args) => {
     const config = await getConfig();
     const addresses = fs.readFileSync(args.inputfile, { encoding: 'ascii' }).split('\n');
-    out(await pohRegisterBulk(config.poh, addresses, args.numaddressespertransaction, getAddress(config, 0)));
+    out(await pohRegisterBulk(config.poh, addresses, args.numaddressespertransaction, getAddress(config, 0), { gasPrice: getGasPrice() }));
 })
     .addParam('inputfile', 'The path to the file containing a list of addresses')
     .addOptionalParam('numaddressespertransaction', 'Send addresses in smaller slices', 200, types.int);
 
 task('_delegate-apply', 'Apply for delegation', async (args) => {
     const config = await getConfig();
-    out((await config.assembly.applyForDelegation({ from: getAddress(config, args.from) })).tx);
+    out((await config.assembly.applyForDelegation({ from: getAddress(config, args.from), gasPrice: getGasPrice() })).tx);
 })
     .addOptionalParam('from', 'The human to become a delegate', '', types.string)
 
 task('_citizen-apply', 'Apply for citizenship', async (args) => {
     const config = await getConfig();
-    out((await config.assembly.applyForCitizenship({ from: getAddress(config, args.from) })).tx);
+    out((await config.assembly.applyForCitizenship({ from: getAddress(config, args.from), gasPrice: getGasPrice() })).tx);
 })
     .addOptionalParam('from', 'The human to become a citizen', '', types.string)
 
 task('_delegate-appoint', 'Appoint a delegate', async (args) => {
     const config = await getConfig();
-    out((await config.assembly.appointDelegate(getAddress(config, args.delegate), { from: getAddress(config, args.from) })).tx);
+    out((await config.assembly.appointDelegate(getAddress(config, args.delegate), { from: getAddress(config, args.from), gasPrice: getGasPrice() })).tx);
 })
     .addParam('delegate', 'The address of the delegate')
     .addOptionalParam('from', 'The human to appoint the delegate', '', types.string)
 
 task('_delegate-claimseat', 'Claim a given seat number', async (args) => {
     const config = await getConfig();
-    out((await config.assembly.claimSeat(args.seatnum, { from: getAddress(config, args.from) })).tx);
+    out((await config.assembly.claimSeat(args.seatnum, { from: getAddress(config, args.from), gasPrice: getGasPrice() })).tx);
 
 })
     .addParam('seatnum', 'The seat number to claim')
     .addOptionalParam('from', 'The requester', '', types.string)
 
-task('_proposal-encode-distrust', 'Distrust an address', async (args) => {
+task('_transaction-encode-distrust', 'Distrust an address', async (args) => {
     const config = await getConfig();
     const abi = config.assembly.contract.methods.distrust(getAddress(config, args.address)).encodeABI();
     out(abi);
 })
     .addParam('address', 'The address to distrust');
 
-task('_proposal-encode-expel', 'Expels a human from the DAO', async (args) => {
+task('_transaction-encode-expel', 'Expels a human from the DAO', async (args) => {
     const config = await getConfig();
     const abi = config.assembly.contract.methods.expel(getAddress(config, args.address)).encodeABI();
     out(abi);
 })
     .addParam('address', 'The address of the human');
 
-task('_proposal-encode-sendtoken', 'Transaction bytecode to set send tokens from and to the given address', async (args) => {
+task('_transaction-encode-sendtoken', 'Transaction hexadecimal string to send tokens from the reserve to the given address', async (args) => {
     const config = await getConfig();
     const abi = config.token.contract.methods.governorSend(
         await config.token.getReserve(),
@@ -297,7 +321,7 @@ task('_proposal-encode-sendtoken', 'Transaction bytecode to set send tokens from
     .addParam('recipient', 'Who receives the tokens')
     .addParam('value', 'Number of tokens in minimal units')
 
-task('_proposal-encode-setReferralRewardParams', 'Transaction bytecode to set the referral reward parameters', async (args) => {
+task('_transaction-encode-setReferralRewardParams', 'Transaction to set the referral reward parameters', async (args) => {
     const config = await getConfig();
     const abi = config.assembly.contract.methods.setReferralRewardParams(new BN(args.referredamount), new BN(args.referreramount)).encodeABI();
     out(abi);
@@ -306,7 +330,7 @@ task('_proposal-encode-setReferralRewardParams', 'Transaction bytecode to set th
     .addParam('referreramount', 'Number of token units for the referrer address');
 
 
-task('_proposal-encode-setExecRewardExponentMax', 'Transaction bytecode to set the execution reward parameters', async (args) => {
+task('_transaction-encode-setExecRewardExponentMax', 'Transaction to set the execution reward parameters', async (args) => {
     const config = await getConfig();
     const abi = config.assembly.contract.methods.setExecRewardExponentMax(args.value).encodeABI();
     out(abi);
@@ -314,7 +338,7 @@ task('_proposal-encode-setExecRewardExponentMax', 'Transaction bytecode to set t
     .addParam('value', 'Maximum exponent of the execution reward exponential function')
 
 
-task('_proposal-encode-registerHumans', 'Bulk registration of addresses belonging to humans', async (args) => {
+task('_transaction-encode-registerHumans', 'Bulk registration of addresses belonging to humans', async (args) => {
     const config = await getConfig();
     const addresses = args.addresses.split(',')
     const abi = config.poh.contract.methods.registerHumans(addresses).encodeABI();
@@ -322,7 +346,7 @@ task('_proposal-encode-registerHumans', 'Bulk registration of addresses belongin
 })
     .addParam('addresses', 'Addresses belonging to humans');
 
-task('_proposal-encode-deregisterHumans', 'Bulk deregistration of addresses no longer belonging to humans', async (args) => {
+task('_transaction-encode-deregisterHumans', 'Bulk deregistration of addresses no longer belonging to humans', async (args) => {
     const config = await getConfig();
     const addresses = args.addresses.split(',')
     const abi = config.poh.contract.methods.deregisterHumans(addresses).encodeABI();
@@ -330,7 +354,7 @@ task('_proposal-encode-deregisterHumans', 'Bulk deregistration of addresses no l
 })
     .addParam('addresses', 'Addresses belonging to non-humans');
 
-task('_proposal-batch-update-oracle-poh', 'Create a batch of transactions to keep the oracle in sync with Proof of Humanity\'s registry', async (args) => {
+task('_transaction-batch-update-oracle-poh', 'Create a batch of transactions to keep the oracle in sync with Proof of Humanity\'s registry', async (args) => {
     const config = await getConfig();
     const addresses = await retrieveAddressLists(config.contractAddresses.poh);
     const maxnumadressespertx = parseInt(args.maxnumadressespertx);
@@ -360,7 +384,7 @@ task('_proposal-batch-update-oracle-poh', 'Create a batch of transactions to kee
 })
     .addParam('maxnumadressespertx', 'Set maximum number of addresses contained in a transaction', '200', types.string)
 
-task('_proposal-encode-upgrade', 'Upgrade contract', async (args) => {
+task('_transaction-encode-upgrade', 'Upgrade contract', async (args) => {
     const config = await getConfig();
     const abi = config[args.contract].contract.methods.upgradeTo(args.newimplementationaddress).encodeABI();
     out(abi);
@@ -368,37 +392,74 @@ task('_proposal-encode-upgrade', 'Upgrade contract', async (args) => {
     .addParam('contract', 'The contract to upgrade: poh, assembly, wallet, token or faucet')
     .addParam('newimplementationaddress', 'The address of the new implementation contract');
 
-task('_proposal-submit', 'Submit a transaction proposal to the wallet contract', async (args) => {
+task('_transaction-submit', 'Submit a transaction to the wallet contract', async (args) => {
     const config = await getConfig();
     const value = args.value ? new BN(args.value) : new BN('0');
-    const receipt = await config.wallet.submitProposal(getAddress(config, args.recipient), value, args.data, { from: getAddress(config, config.signer) });
-    const proposalId = parseInt(receipt.logs[0].args.proposalId.valueOf());
-    out(proposalId);
+    const receipt = await config.wallet.submitTransaction(
+        getAddress(config, args.recipient),
+        value,
+        args.data,
+        new BN(args.proposalid),
+        new BN(args.stepnum),
+        { from: getAddress(config, config.signer), gasPrice: getGasPrice() });
+    const transactionId = parseInt(receipt.logs[0].args.transactionId.valueOf());
+    out(transactionId);
 })
+    .addParam('proposalid', 'The proposal containing the transaction')
+    .addParam('stepnum', 'The step to which allocate the transaction')
     .addParam('recipient', 'The recipient address')
     .addOptionalParam('value', 'The value of the transaction in wei (e.g. 1000000000000000000 for 1 ether)', '0', types.string)
     .addOptionalParam('data', 'The transaction data in hex format (e.g. 0x0)', '0x', types.string);
 
-task('_proposal-get', 'Gets the transaction proposal details', async (args) => {
+task('_transaction-get', 'Returns the transaction data', async (args) => {
     const config = await getConfig();
-    const p = await config.wallet.getProposal(args.proposalid)
-    const proposal = {
-        destination: p[0],
-        value: p[1],
-        data: p[2],
-        executed: p[3],
+    const t = await config.wallet.getTransaction(args.transactionid)
+    const transaction = {
+        destination: t[0],
+        value: t[1],
+        data: t[2],
+        executed: t[3],
     }
+    out(transaction);
+})
+    .addParam('transactionid', 'The transaction id')
+
+task('_proposal-create', 'Creates the proposal', async (args) => {
+    const config = await getConfig();
+    const proposalId = (await config.wallet.createProposal({ gasPrice: getGasPrice() })).logs[0].args.proposalId.valueOf();
+    out(proposalId);
+})
+
+task('_proposal-submit', 'Submits the proposal for voting. Returns the number of transactions in the proposal', async (args) => {
+    const config = await getConfig();
+    const proposalTransactionCount = parseInt(await config.wallet.submitProposal(args.proposalid, { gasPrice: getGasPrice() }));
+    out(proposalTransactionCount);
+})
+    .addParam('proposalid', 'The proposal id')
+
+task('_proposal-get', 'Returns the proposal data', async (args) => {
+    const config = await getConfig();
+    const p = await config.wallet.getProposal(args.proposalid);
+    const proposal = {
+        status: getKeyByValue(PROPOSAL_STATUS, p[0]),
+        transactionCount: (new BN(p[1])).toString(),
+        executedTransactionsCount: (new BN(p[2])).toString(),
+    };
     out(proposal);
 })
     .addParam('proposalid', 'The proposal id')
 
-task('_tally-create', 'Creates a new tally for a given transaction', async (args) => {
+task('_tally-create', 'Creates a new tally for a given proposal', async (args) => {
     const config = await getConfig();
-    const receipt = await config.assembly.createTally(args.proposalid, { from: getAddress(config, config.signer) });
+    const receipt = await config.assembly.createTally(args.proposalid,
+        {
+            from: getAddress(config, config.signer),
+            gasPrice: getGasPrice(),
+        });
     const tallyId = parseInt(receipt.logs[0].args.tallyId.valueOf());
     out(tallyId);
 })
-    .addParam('proposalid', 'The transaction id number to tally on');
+    .addParam('proposalid', 'The proposal id number to tally on');
 
 task('_tally-get', 'Gets the tally details', async (args) => {
     const config = await getConfig();
@@ -434,7 +495,7 @@ task('_tally-get-vote', 'Gets the tally details', async (args) => {
 task('_tally-delegate-vote', 'Cast a vote on a given tally as a delegate', async (args) => {
     const config = await getConfig();
     const vote = parseInt(args.vote)
-    out((await config.assembly.castDelegateVote(args.tallyid, vote == 1, { from: getAddress(config, args.voter) })).tx);
+    out((await config.assembly.castDelegateVote(args.tallyid, vote == 1, { from: getAddress(config, args.voter), gasPrice: getGasPrice() })).tx);
 })
     .addParam('tallyid', 'The tally in question')
     .addParam('vote', '1 for yes, 0 for no')
@@ -442,8 +503,8 @@ task('_tally-delegate-vote', 'Cast a vote on a given tally as a delegate', async
 
 task('_tally-citizen-vote', 'Cast a vote on a given tally as a citizen', async (args) => {
     const config = await getConfig();
-    const vote = parseInt(args.vote)
-    out((await config.assembly.castCitizenVote(args.tallyid, vote == 1, { from: getAddress(config, args.voter) })).tx);
+    const vote = parseInt(args.vote);
+    out((await config.assembly.castCitizenVote(args.tallyid, vote == 1, { from: getAddress(config, args.voter), gasPrice: getGasPrice() })).tx);
 })
     .addParam('tallyid', 'The tally in question')
     .addParam('vote', '1 for yes, 0 for no')
@@ -461,6 +522,7 @@ task('_tally-enact', 'Executes the tally transaction proposal if approved', asyn
     out((await config.assembly.enact(args.tallyid, {
         from: getAddress(config, args.from),
         gasLimit: args.gaslimit,
+        gasPrice: getGasPrice()
     })).tx);
 })
     .addParam('tallyid', 'The tally to enact')
@@ -472,6 +534,7 @@ task('_tally-execute', 'Performs both counting votes and executing the transacti
     out((await config.assembly.execute(args.tallyid, {
         from: getAddress(config, args.from),
         gasLimit: args.gaslimit,
+        gasPrice: getGasPrice()
     })).tx);
 })
     .addParam('tallyid', 'The tally to process')
@@ -480,18 +543,18 @@ task('_tally-execute', 'Performs both counting votes and executing the transacti
 
 task('_token-distributeDelegationReward', 'Takes a snapshot of the seats and distributes the reward among the delegates accordingly', async (args) => {
     const config = await getConfig();
-    out((await config.assembly.distributeDelegationReward({ from: getAddress(config, args.signer) })).tx);
+    out((await config.assembly.distributeDelegationReward({ from: getAddress(config, args.signer), gasPrice: getGasPrice() })).tx);
 })
 
 task('_token-claimRewards', "Transfer any earned rewards except referral's", async (args) => {
     const config = await getConfig();
-    out((await config.assembly.claimRewards({ from: getAddress(config, args.address) })).tx);
+    out((await config.assembly.claimRewards({ from: getAddress(config, args.address), gasPrice: getGasPrice() })).tx);
 })
     .addOptionalParam('address', 'The address to claim the rewards for')
 
 task('_token-claimReferralReward', 'Transfer any earned referral rewards', async (args) => {
     const config = await getConfig();
-    out((await config.assembly.claimReferralReward(getAddress(config, args.referrer), { from: getAddress(config, args.from) })).tx);
+    out((await config.assembly.claimReferralReward(getAddress(config, args.referrer), { from: getAddress(config, args.from), gasPrice: getGasPrice() })).tx);
 })
     .addOptionalParam('referrer', 'The address to claim the reward for')
     .addOptionalParam('from', 'The signer of the operation', '', types.string);
@@ -502,7 +565,7 @@ task('_token-get-balance', 'Returns the balance in tokens of a given address', a
     const balance = await config.token.balanceOf(address);
     out(formatBalance(balance));
 })
-    .addOptionalParam('address', 'The address from which to check the balance')
+    .addOptionalParam('address', 'The address from which to check the balance');
 
 task('_contracts-deploy', 'Deploys a whole new instance of contracts', async (args) => {
     [poh, assembly, wallet, token, faucet] = await deployAll(artifacts, { testable: args.testable });
@@ -526,7 +589,7 @@ task('_contracts-deploy', 'Deploys a whole new instance of contracts', async (ar
     }
 })
     .addOptionalParam('testable', 'Deploy testable contracts (Note: do *NOT* use this in production!)', false, types.boolean)
-    .addOptionalParam('output', 'The output file where to write the configuration file containing the contract addresses', 'config.json', types.string)
+    .addOptionalParam('output', 'The output file where to write the configuration file containing the contract addresses', DEFAULT_CONFIG_FILENAME, types.string)
 
 task('_contracts-initialize', 'Initializes all contracts', async (args) => {
     const config = await getConfig();
@@ -534,7 +597,24 @@ task('_contracts-initialize', 'Initializes all contracts', async (args) => {
     out('OK');
 });
 
+task('_contracts-implementation-deploy', 'Deploys an instance of the Wallet contract', async (args) => {
+    if (args.contract == 'poh')
+        out((await deployImplementationContractPohOracle(artifacts)).address);
+    else if (args.contract == 'assembly')
+        out((await deployImplementationContractAssembly(artifacts)).address);
+    else if (args.contract == 'wallet')
+        out((await deployImplementationContractWallet(artifacts)).address);
+    else if (args.contract == 'token')
+        out((await deployImplementationContractToken(artifacts)).address);
+    else if (args.contract == 'faucet')
+        out((await deployImplementationContractFaucet(artifacts)).address);
+    else
+        out(`Error: Unknow contract ${args.contract}`);
+})
+    .addParam('contract', 'The contract to deploy (poh, assembly, wallet, token or faucet)');
+
 module.exports = {
+    setConfig,
     getConfig,
     parseBalance,
 }

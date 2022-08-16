@@ -1,4 +1,5 @@
 const { BN, time } = require('@openzeppelin/test-helpers');
+const { exec } = require('child_process');
 const { expect } = require('chai');
 const deploymentParams = require('../deployment-params');
 
@@ -11,7 +12,7 @@ const SOME_UINT = '1234567890';
 const DEFAULT_THRESHOLD = new BN('50');
 const REVERT_MESSAGES = {
     cannotDoThis: 'You are not allowed to do this',
-    notInitializedYed: 'Contract has not yet been initialized',
+    notInitializedYet: 'Contract has not yet been initialized',
     pohCannotZero: 'PoH contract address cannot be zero',
     assemblyCannotZero: 'Assembly contract address cannot be zero',
     walletCannotZero: 'Wallet contract address cannot be zero',
@@ -62,8 +63,17 @@ const REVERT_MESSAGES = {
     newAddressMustDiff: 'The new address must be different',
     wrongProposalId: 'Wrong proposal id',
     notTrusted: 'You are not trusted to perform this operation',
-    noRewardToClaim: 'Your reward balance is zero'
+    noRewardToClaim: 'Your reward balance is zero',
+    wrongProposalStatus: 'Wrong proposal status',
+    proposalOnlyCreator: 'Only the proposal creator can perform this operation',
+    proposalCannotChange: 'Proposal was already submitted and cannot be changed',
+    proposalFullyExecuted: 'Proposal was already fully executed',
+    proposalStepNotExecuted: 'Proposal step could not be executed',
+    needToFillEmptyStepsFirst: 'You need to submit at least one transaction into any prior empty steps first',
+    emptyProposal: 'No transactions were submitted for this proposal',
 }
+const TASK_COMMAND_PREFIX = 'yarn --silent task';
+const GAS_LIMIT = 10000000;
 
 ///////////////////////////////////////////////////////////////
 // common functions 
@@ -93,63 +103,104 @@ function getAccountRoles(accounts) {
     };
 }
 
+function getGasPrice() {
+    return process.env.GAS_PRICE;
+}
+
+async function deployImplementationContractPohOracle(artifacts) {
+    const ProofOfHumanityOracle = artifacts.require('ProofOfHumanityOracle');
+    return await ProofOfHumanityOracle.new({gasPrice: getGasPrice()});
+}
+
+async function deployImplementationContractPohOracleTestable(artifacts) {
+    const ProofOfHumanityOracleTestable = artifacts.require('ProofOfHumanityOracleTestable');
+    return await ProofOfHumanityOracleTestable.new({gasPrice: getGasPrice()});
+}
+
 async function deployPohOracle(artifacts) {
     const ERC1967Proxy = artifacts.require('@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy');
     const ProofOfHumanityOracle = artifacts.require('ProofOfHumanityOracle');
 
-    return await ProofOfHumanityOracle.at((await ERC1967Proxy.new((await ProofOfHumanityOracle.new()).address, '0x')).address);
+    return await ProofOfHumanityOracle.at((await ERC1967Proxy.new((await deployImplementationContractPohOracle(artifacts)).address, '0x')).address);
 }
 
 async function deployPohOracleTestable(artifacts) {
     const ERC1967Proxy = artifacts.require('@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy');
     const ProofOfHumanityOracle = artifacts.require('ProofOfHumanityOracle');
-    const ProofOfHumanityOracleTestable = artifacts.require('ProofOfHumanityOracleTestable');
 
-    return await ProofOfHumanityOracle.at((await ERC1967Proxy.new((await ProofOfHumanityOracleTestable.new()).address, '0x')).address);
+    return await ProofOfHumanityOracle.at((await ERC1967Proxy.new((await deployImplementationContractPohOracleTestable(artifacts)).address, '0x')).address);
+}
+
+async function deployImplementationContractAssembly(artifacts) {
+    const Assembly = artifacts.require('Assembly');
+    return await Assembly.new({gasPrice: getGasPrice()});
+}
+
+async function deployImplementationContractAssemblyTestable(artifacts) {
+    const AssemblyTestable = artifacts.require('AssemblyTestable');
+    return await AssemblyTestable.new({gasPrice: getGasPrice()});
 }
 
 async function deployAssembly(artifacts) {
     const ERC1967Proxy = artifacts.require('@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy');
     const Assembly = artifacts.require('Assembly');
 
-    return await Assembly.at((await ERC1967Proxy.new((await Assembly.new()).address, '0x')).address);
+    return await Assembly.at((await ERC1967Proxy.new((await deployImplementationContractAssembly(artifacts)).address, '0x')).address);
 }
 
 async function deployAssemblyTestable(artifacts) {
     const ERC1967Proxy = artifacts.require('@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy');
     const Assembly = artifacts.require('Assembly');
-    const AssemblyTestable = artifacts.require('AssemblyTestable');
 
-    return await Assembly.at((await ERC1967Proxy.new((await AssemblyTestable.new()).address, '0x')).address);
+    return await Assembly.at((await ERC1967Proxy.new((await deployImplementationContractAssemblyTestable(artifacts)).address, '0x')).address);
+}
+
+async function deployImplementationContractWallet(artifacts) {
+    const Wallet = artifacts.require('Wallet');
+    return await Wallet.new({gasPrice: getGasPrice()});
+}
+
+async function deployImplementationContractWalletTestable(artifacts) {
+    const WalletTestable = artifacts.require('WalletTestable');
+    return await WalletTestable.new({gasPrice: getGasPrice()});
 }
 
 async function deployWallet(artifacts) {
     const ERC1967Proxy = artifacts.require('@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy');
     const Wallet = artifacts.require('Wallet');
 
-    return await Wallet.at((await ERC1967Proxy.new((await Wallet.new()).address, '0x')).address);
+    return await Wallet.at((await ERC1967Proxy.new((await deployImplementationContractWallet(artifacts)).address, '0x')).address);
 }
 
 async function deployWalletTestable(artifacts) {
     const ERC1967Proxy = artifacts.require('@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy');
     const Wallet = artifacts.require('Wallet');
-    const WalletTestable = artifacts.require('WalletTestable');
 
-    return await Wallet.at((await ERC1967Proxy.new((await WalletTestable.new()).address, '0x')).address);
+    return await Wallet.at((await ERC1967Proxy.new((await deployImplementationContractWalletTestable(artifacts)).address, '0x')).address);
+}
+
+async function deployImplementationContractToken(artifacts) {
+    const Token = artifacts.require('Token');
+    return await Token.new({gasPrice: getGasPrice()});
 }
 
 async function deployToken(artifacts) {
     const ERC1967Proxy = artifacts.require('@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy');
     const Token = artifacts.require('Token');
 
-    return await Token.at((await ERC1967Proxy.new((await Token.new()).address, '0x')).address);
+    return await Token.at((await ERC1967Proxy.new((await deployImplementationContractToken(artifacts)).address, '0x')).address);
+}
+
+async function deployImplementationContractFaucet(artifacts) {
+    const Faucet = artifacts.require('Faucet');
+    return await Faucet.new({gasPrice: getGasPrice()});
 }
 
 async function deployFaucet(artifacts) {
     const ERC1967Proxy = artifacts.require('@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy');
     const Faucet = artifacts.require('Faucet');
 
-    return await Faucet.at((await ERC1967Proxy.new((await Faucet.new()).address, '0x')).address);
+    return await Faucet.at((await ERC1967Proxy.new((await deployImplementationContractFaucet(artifacts)).address, '0x')).address);
 }
 
 async function deployAll(artifacts, { testable = false } = {}) {
@@ -235,6 +286,15 @@ async function initializeAll(poh, assembly, wallet, token, faucet, roles) {
 // functions relying on assembly-wallet integration
 ///////////////////////////////////////////////////////////////
 
+async function createProposal(wallet, fromAddress) {
+    const receipt = await wallet.createProposal({ from: fromAddress });
+    return receipt.logs[0].args.proposalId.valueOf();
+}
+
+async function submitTransaction(wallet, destination, value, data, proposalId, stepNum, fromAddress) {
+    return (await wallet.submitTransaction(destination, value, data, proposalId, stepNum, { from: fromAddress })).logs[0].args.transactionId.valueOf();
+}
+
 async function createTally(assembly, proposalId, roles) {
     receipt = await assembly.createTally(proposalId, { from: roles.delegate1 });
     tallyId = receipt.logs[0].args.tallyId.valueOf()
@@ -252,14 +312,14 @@ async function createAndApprove(assembly, roles, proposalId) {
 }
 
 async function buildPopulationScenario(roles, poh, assembly) {
-    await poh.registerHuman(roles.citizen1);
-    await poh.registerHuman(roles.citizen2);
-    await poh.registerHuman(roles.citizen3);
-    await poh.registerHuman(roles.citizen4);
-    await poh.registerHuman(roles.citizen5);
-    await poh.registerHuman(roles.delegate1);
-    await poh.registerHuman(roles.delegate2);
-    await poh.registerHuman(roles.delegate3)
+    await poh.registerHuman(roles.citizen1, { from: roles.updater });
+    await poh.registerHuman(roles.citizen2, { from: roles.updater });
+    await poh.registerHuman(roles.citizen3, { from: roles.updater });
+    await poh.registerHuman(roles.citizen4, { from: roles.updater });
+    await poh.registerHuman(roles.citizen5, { from: roles.updater });
+    await poh.registerHuman(roles.delegate1, { from: roles.updater });
+    await poh.registerHuman(roles.delegate2, { from: roles.updater });
+    await poh.registerHuman(roles.delegate3, { from: roles.updater })
 
     await assembly.applyForCitizenship({ from: roles.citizen1 });
     await assembly.applyForCitizenship({ from: roles.citizen2 });
@@ -490,6 +550,13 @@ const VOTE_STATUS = {
     Nay: 2
 }
 
+const PROPOSAL_STATUS = {
+    Created: 0,
+    Submitted: 1,
+    PartiallyExecuted: 2,
+    FullyExecuted: 3
+}
+
 function getKeyByValue(obj, value) {
     return Object.keys(obj).find(key => obj[key] == value);
 }
@@ -498,10 +565,32 @@ function sleep(ms) {
     return new Promise((resolve) => { setTimeout(resolve, ms); });
 }
 
+function execShellCommand(cmd) {
+    return new Promise((resolve, reject) => {
+        exec(cmd, (error, stdout, stderr) => {
+            if (error) {
+                console.error(error);
+                throw new Error(error);
+            }
+            resolve(stdout ? stdout : stderr);
+        });
+    });
+}
+
+async function execTask(cmd) {
+    const execShellCommandOut = await execShellCommand(`${TASK_COMMAND_PREFIX} ${cmd}`);
+    try {
+        const ret = JSON.parse(execShellCommandOut);
+        return ret;
+    } catch (_) { }
+    return execShellCommandOut;
+}
+
 ///////////////////////////////////////////////////////////////
 
 module.exports = {
     getAccountRoles,
+    getGasPrice,
     deploymentParams,
     deployPohOracle,
     deployAssembly,
@@ -509,6 +598,11 @@ module.exports = {
     deployFaucet,
     deployAll,
     deployWalletTestable,
+    deployImplementationContractPohOracle,
+    deployImplementationContractAssembly,
+    deployImplementationContractWallet,
+    deployImplementationContractToken,
+    deployImplementationContractFaucet,
     initializePohOracle,
     initializeAssembly,
     initializeWallet,
@@ -517,6 +611,8 @@ module.exports = {
     initializeAll,
     buildPopulationScenario,
     buildSeatScenario,
+    createProposal,
+    submitTransaction,
     createTally,
     createAndApprove,
     SOME_UINT,
@@ -524,9 +620,11 @@ module.exports = {
     TALLY_STATUS,
     TALLY_PHASE,
     VOTE_STATUS,
+    PROPOSAL_STATUS,
     getKeyByValue,
     REVERT_MESSAGES,
     ZERO_ADDRESS,
+    GAS_LIMIT,
     distributeDelegationReward,
     makeMap,
     parseTally,
@@ -535,5 +633,6 @@ module.exports = {
     createRandomAddress,
     pohRegisterBulk,
     chunk,
-    sleep
+    sleep,
+    execTask
 };

@@ -15,6 +15,8 @@ const {
     REVERT_MESSAGES,
     distributeDelegationReward,
     parseTally,
+    createProposal,
+    submitTransaction,
 } = require('../scripts/common');
 
 const {
@@ -175,11 +177,9 @@ async function runAssemblyIncentivationTests(artifacts, accounts) {
 
             async function testExecutionReward(numSecsEstimate, hitMax = false) {
                 await snapshotEnacted.restore();
-
-                let tally = parseTally(await assembly.getTally(tallyId));
                 const rewardBalanceBefore = await assembly.getRewardBalance(roles.operator);
-
-                tally = parseTally(await assembly.getTally(tallyId));
+                const tt = await assembly.getTally(tallyId);
+                const tally = parseTally(tt);
                 await time.increaseTo((new BN(tally.votingEndTime)).add(numSecsEstimate));
 
                 expect(parseInt(tally.status)).to.be.equal(TALLY_STATUS.ProvisionalApproved);
@@ -202,18 +202,23 @@ async function runAssemblyIncentivationTests(artifacts, accounts) {
                 await initializeAll(poh, assembly, wallet, token, faucet, roles);
                 await buildSeatScenario(roles, poh, assembly);
 
-                const tx = await wallet.submitProposal(token.address, 0,
-                    token.contract.methods.governorSend(
-                        await token.getReserve(), roles.other, 1, []).encodeABI(),
-                    { from: roles.delegate1 });
-                const proposalId = tx.logs[0].args.proposalId.valueOf();
+                const proposalId = await createProposal(wallet, roles.delegate1);
+                await submitTransaction(wallet,
+                    token.address,
+                    0,
+                    token.contract.methods.governorSend(await token.getReserve(), roles.other, 1, []).encodeABI(),
+                    proposalId,
+                    0,
+                    roles.delegate1);
+
+                await wallet.submitProposal(proposalId, { from: roles.delegate1 });
                 tallyId = await createTally(assembly, proposalId, roles);
 
                 await assembly.castDelegateVote(tallyId, true, { from: roles.delegate1 });
                 await assembly.castDelegateVote(tallyId, true, { from: roles.delegate2 });
                 await assembly.tallyUp(tallyId);
 
-                const tally = parseTally(await assembly.getTally(tallyId));
+                tally = parseTally(await assembly.getTally(tallyId));
                 await time.increaseTo(tally.votingEndTime);
                 snapshotEnacted = await snapshot();
             });

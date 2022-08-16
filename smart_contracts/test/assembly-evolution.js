@@ -107,16 +107,11 @@ async function runAssemblyEvolutionTests(artifacts, accounts) {
                 await buildSeatScenario(roles, poh, assembly);
             });
 
-            it('Only trusted addresses can submit a transaction proposal', async () => {
+            it('Only trusted addresses can create proposals', async () => {
                 await wallet.setTestMode(false);
 
                 assert.equal(await assembly.isTrusted(roles.other), false);
-                await expectRevert(
-                    wallet.submitProposal(
-                        token.address,
-                        0,
-                        await createTestTransaction(), { from: roles.other }),
-                    REVERT_MESSAGES.notTrusted);
+                await expectRevert(wallet.createProposal({ from: roles.other }), REVERT_MESSAGES.notTrusted);
 
                 await wallet.setTestMode(true);
             });
@@ -132,11 +127,26 @@ async function runAssemblyEvolutionTests(artifacts, accounts) {
 
             it('Can create tally', async () => {
                 assert.equal(await isTestTransactionEnacted(), false);
-                receipt = await wallet.submitProposal(
+
+                receipt = await wallet.createProposal({ from: roles.delegate1 });
+                const proposalId = receipt.logs[0].args.proposalId.valueOf();
+                expect(proposalId).to.be.bignumber.equal('0');
+
+                receipt = await wallet.submitTransaction(
                     token.address,
                     0,
-                    await createTestTransaction(), { from: roles.delegate1 });
-                const proposalId = receipt.logs[0].args.proposalId.valueOf();
+                    await createTestTransaction(),
+                    proposalId,
+                    0,
+                    { from: roles.delegate1 });
+
+                const transactionId = receipt.logs[0].args.transactionId.valueOf();
+                expect(transactionId).to.be.bignumber.equal('0');
+
+                receipt = await wallet.submitProposal(proposalId, { from: roles.delegate1 });
+                expect(proposalId).to.be.bignumber.equal(receipt.logs[0].args.proposalId.valueOf());
+                expect(new BN('1')).to.be.bignumber.equal(receipt.logs[0].args.stepsCount.valueOf());
+
                 receipt = await assembly.createTally(proposalId, { from: roles.delegate1 });
                 tallyId = receipt.logs[0].args.tallyId.valueOf();
                 expect(await assembly.getTallyCount()).to.be.bignumber.equal('1');

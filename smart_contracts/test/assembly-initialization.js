@@ -29,7 +29,7 @@ async function runAssemblyInitializationTests(artifacts, accounts) {
         });
 
         it('Must initialize first', async () => {
-            const revertMsg = REVERT_MESSAGES.notInitializedYed;
+            const revertMsg = REVERT_MESSAGES.notInitializedYet;
             await expectRevert(assembly.isHuman(ZERO_ADDRESS), revertMsg);
             await expectRevert(assembly.applyForDelegation(), revertMsg);
             await expectRevert(assembly.appointDelegate(ZERO_ADDRESS), revertMsg);
