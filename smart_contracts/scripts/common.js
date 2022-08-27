@@ -334,12 +334,12 @@ async function buildPopulationScenario(roles, poh, assembly) {
     await assembly.appointDelegate(roles.delegate1, { from: roles.citizen1 });
     await assembly.appointDelegate(roles.delegate2, { from: roles.citizen2 });
     await assembly.appointDelegate(roles.delegate3, { from: roles.citizen3 });
-    await assembly.appointDelegate(roles.delegate1, { from: roles.citizen4 });
+    await assembly.appointDelegate(roles.delegate2, { from: roles.citizen4 });
 
     // Population Distribution
     // -----------------------
-    // delegate1: citizen1, citizen4
-    // delegate2: citizen2
+    // delegate1: citizen1
+    // delegate2: citizen2, citizen4
     // delegate3: citizen3
     // no delegate: citizen5
 }
@@ -352,8 +352,8 @@ async function buildSeatScenario(roles, poh, assembly) {
 
     // Population Distribution
     // -----------------------
-    // seat0  : delegate1: citizen1, citizen4
-    // seat1  : delegate2: citizen2
+    // seat0  : delegate1: citizen1
+    // seat1  : delegate2: citizen2, citizen4
     // no seat: delegate3: citizen3
     // no delegate: citizen5
 }
@@ -372,7 +372,7 @@ async function validateTallyState(roles, assembly, tallyId, scenario, doTallyUp 
     if (scenario == 'initial') {
         await check(TALLY_STATUS.ProvisionalNotApproved, 0, 0, 0, TALLY_PHASE.Deliberation);
     } else if (scenario == 'delegate1yay') {
-        await check(TALLY_STATUS.ProvisionalNotApproved, 2, 0, 0, TALLY_PHASE.Deliberation);
+        await check(TALLY_STATUS.ProvisionalNotApproved, 1, 0, 0, TALLY_PHASE.Deliberation);
     } else if (scenario == 'delegates12yays') {
         await check(TALLY_STATUS.ProvisionalApproved, 3, 0, 0, TALLY_PHASE.Deliberation);
     } else if (scenario == 'delegates12yays_revocation') {

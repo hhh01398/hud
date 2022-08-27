@@ -63,7 +63,7 @@ async function runAssemblyEvolutionTests(artifacts, accounts) {
 
                 assert.equal(
                     JSON.stringify(makeMap(await assembly.getDelegateSeatAppointmentCounts())),
-                    `{"${roles.delegate1}":"2","${roles.delegate2}":"1"}`,
+                    `{"${roles.delegate1}":"1","${roles.delegate2}":"2"}`,
                 );
             });
 
