@@ -104,7 +104,7 @@ async function runAssemblyDepopulationTests(artifacts, accounts) {
                 tally = parseTally(await assembly.getTally(tallyId));
                 expect(tally.delegatedYays).to.be.bignumber.equal(tallyBefore.delegatedYays.sub(new BN('1')));
                 expect(tally.citizenCount).to.be.bignumber.equal(tallyBefore.citizenCount.sub(new BN('1')));
-                assert.equal(tally.status, TALLY_STATUS.ProvisionalNotApproved);
+                assert.equal(tally.status, TALLY_STATUS.ProvisionalApproved);
             });
         });
 
@@ -128,7 +128,7 @@ async function runAssemblyDepopulationTests(artifacts, accounts) {
                 await assembly.tallyUp(tallyId);
                 tally = parseTally(await assembly.getTally(tallyId));
                 expect(tally.delegatedYays).to.be.bignumber.equal(tallyBefore.delegatedYays.sub(await assembly.getAppointmentCount(exDelegate)));
-                assert.equal(tally.status, TALLY_STATUS.ProvisionalNotApproved);
+                assert.equal(tally.status, TALLY_STATUS.ProvisionalApproved);
             });
         });
     });

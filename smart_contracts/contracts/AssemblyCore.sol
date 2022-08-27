@@ -444,20 +444,24 @@ contract AssemblyCore is UUPSUpgradeable, ReentrancyGuardUpgradeable, IERC20, IA
         Tally storage t = _tallies[tallyId];
         require(t.status == TallyStatus.ProvisionalNotApproved || t.status == TallyStatus.ProvisionalApproved, "The tally cannot be changed");
         t.citizenCount = _citizenCount;
-        uint256 voteThreshold = (_citizenCount * _votingPercentThreshold) / 100;
         bool finalNayOrYay;
 
         // Delegate voting
         uint256 yays;
+        uint256 seatedDelegateCitizenCount;
         for (uint256 i = 0; i < _delegateSeats.length; i++) {
-            if (_delegateVotes[tallyId][_delegateSeats[i]]) yays += _appointmentCount[_delegateSeats[i]];
+            uint256 delegateAppointmentCount = _appointmentCount[_delegateSeats[i]];
+            if (_delegateVotes[tallyId][_delegateSeats[i]]) yays += delegateAppointmentCount;
+            seatedDelegateCitizenCount += delegateAppointmentCount;
         }
         t.delegatedYays = yays;
-        finalNayOrYay = yays > voteThreshold ? true : false;
+        uint256 voteThresholdForDelegates = (seatedDelegateCitizenCount * _votingPercentThreshold) / 100;
+        finalNayOrYay = yays > voteThresholdForDelegates ? true : false;
 
         // Citizen voting
-        // If there are enough citizen votes, the citizen voting s the delegate voting.
-        if (t.citizenYays > voteThreshold || t.citizenNays > voteThreshold) {
+        // If there are enough citizen votes, the citizen voting overrides the delegate voting.
+        uint256 voteThresholdForCitizens = (_citizenCount * _votingPercentThreshold) / 100;
+        if (t.citizenYays > voteThresholdForCitizens || t.citizenNays > voteThresholdForCitizens) {
             finalNayOrYay = t.citizenYays > t.citizenNays ? true : false;
         }
 
